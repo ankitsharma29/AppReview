@@ -1,5 +1,4 @@
-import Geolocation from 'react-native-geolocation-service';
-import {Alert, Dimensions, PermissionsAndroid, Platform, PixelRatio} from 'react-native';
+import {Alert, Dimensions, PermissionsAndroid, Platform, PixelRatio, Linking} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Moment from 'moment';
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
@@ -8,91 +7,6 @@ export const isAndroid = Platform.OS === 'android';
 export const otpInputLength = 6;
 export const screenWidth = Dimensions.get('window').width;
 export const screenHeight = Dimensions.get('window').height;
-
-export const getCurrentLocation = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      Geolocation.getCurrentPosition(
-        pos => {
-          const {coords} = pos;
-          // console.log(coords);
-
-          resolve(coords);
-        },
-        error => {
-          reject(error);
-        },
-        
-        {enableHighAccuracy: false, timeout: 15000},
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  });
-};
-
-const checkDevicePermission = async () => {
-  const granted = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    {
-      title: 'Location Access Required',
-      message: 'LearnCode needs to Access your Location',
-      buttonNeutral: 'Ask Me Later',
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-    },
-  );
-
-  if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const requestLocationPermission = async () => {
-  try {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Geolocation Permission',
-          message: 'Can we access your location?',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      return granted;
-    } else if (Platform.OS === 'ios') {
-      return Geolocation.requestAuthorization('whenInUse');
-    }
-  } catch (err) {
-    return false;
-  }
-};
-
-export const fetchUserLocation = async () => {
-  if (isIOS) {
-    Geolocation.requestAuthorization('whenInUse');
-    Geolocation.setRNConfiguration({
-      skipPermissionRequests: false,
-      authorizationLevel: 'whenInUse',
-    });
-    return getCurrentLocation();
-  } else {
-    try {
-      if (await checkDevicePermission()) {
-        return getCurrentLocation();
-      } else {
-        return null;
-      }
-    } catch (error: any) {
-      console.log('fetch location error :', error);
-      return null;
-    }
-  }
-};
 
 export const fetchDeniedPopUp = () => {
   Alert.alert(
@@ -135,3 +49,24 @@ export const setFont = (value: number, standardScreenHeight?: number): number =>
   return RFValue(value,standardScreenHeight)
    
 }
+
+export const openUrl = (url: any) => {
+  Linking.canOpenURL(url).then(() => {
+    Linking.openURL(url);
+  });
+};
+
+export const isValidUrl = (url: string) => {
+  try {
+    if (
+      url != undefined &&
+      (url.indexOf('http://') === 0 || url.indexOf('https://') === 0)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+};
