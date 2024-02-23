@@ -19,19 +19,19 @@ const HomeScreen = ({navigation}: any) => {
       title: 'Get More Views In Multiple Tab',
       des: '*Your Video Must Be Longer Than one Minute',
       screen: 'PageWindow',
-      flag: 'onMinute',
+      flag: 'oneMinute',
     },
     {
       title: 'Get More Views In Multiple Tab',
       des: '',
       screen: 'PageWindow',
-      flag: 'onMinute',
+      flag: 'addMinutes',
     },
     {
       title: 'When The Video Ends, it Will Play Again Automatically',
       des: '',
       screen: 'PageWindow',
-      flag: 'onMinute',
+      flag: 'autoPlay',
     },
     {
       title: 'Learn more about these Apps',
@@ -47,13 +47,13 @@ const HomeScreen = ({navigation}: any) => {
         'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
       );
     } else {
-      navigation.navigate('PageWindow');
+      navigation.navigate('PageWindow', {item: item});
     }
     console.log('click');
   };
   return (
     <View style={styles.containe}>
-      <ScrollView contentContainerStyle={{flexGrow:1}}>
+      <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View style={{margin: scaleSize(10)}}>
           {HomeData.map((item: any, index: number) => (
             <>

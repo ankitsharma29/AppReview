@@ -20,20 +20,31 @@ import CommonLoader from '../../components/CommonLoader';
 import Fonts from '../../resource/theme/font';
 import {isIOS} from '../../helper/appUtils';
 const {scaleFont, scaleSize} = Mixins;
-const WebViewWindow = ({navigation}: any) => {
+const WebViewWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
-  const [modalVisible, setModalVisible] = useState(true);
+  const data = route?.params?.item;
+  const UrlWeb = route?.params?.link;
+  const Customevalue = route?.params?.Customevalue;
+  const windowScreen = route?.params?.windowScreen;
+  const [modalVisible, setModalVisible] = useState(
+    data.flag == 'addMinutes' && true,
+  );
   const [CustomeMinutes, setCustomeMinutes] = useState<any>(0);
-  const UrlWeb = [
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 1},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 2},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 3},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 4},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 5},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 6},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 7},
-    {url: 'https://youtu.be/Cq6Dr4UrK0A?si=--4hqxaC8bo9DTKd', id: 8},
-  ];
+
+  const [webData, setwebData] = useState<any>([]);
+  useEffect(() => {
+    for (let value = 0; value < Customevalue; value++) {
+      setwebData((prevState: any) => [
+        ...prevState,
+        {
+          url: UrlWeb,
+          id: value,
+        },
+      ]);
+    }
+  }, []);
+  console.log('webData', webData);
+
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
       console.log('inside onFocus');
@@ -48,26 +59,31 @@ const WebViewWindow = ({navigation}: any) => {
   return (
     <View style={{flex: 1, backgroundColor: Colors.white()}}>
       <ScrollView>
-        <View
-          style={{
-            justifyContent: 'space-evenly',
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-            margin: scaleSize(10),
-          }}>
-          <View style={[styles.TopView, {flex: 0.2}]}>
-            <Text style={styles.textStyle}>60</Text>
+        {(data.flag == 'oneMinute' || data.flag == 'addMinutes') && (
+          <View
+            style={{
+              justifyContent: 'space-evenly',
+              flexDirection: 'row',
+              alignItems: 'center',
+              flex: 1,
+              margin: scaleSize(10),
+            }}>
+            <View style={[styles.TopView, {flex: 0.2}]}>
+              <Text style={styles.textStyle}>60</Text>
+            </View>
+            <View style={[styles.TopView, {flex: 0.6}]}>
+              <Text style={styles.textStyleLine}>
+                {data.flag == 'addMinutes'
+                  ? ' Your Custome time complete after auto refresh'
+                  : 'Your Video Must Be Longer Than One Minute'}
+              </Text>
+            </View>
+            <View style={[styles.TopView, {flex: 0.4}]}>
+              <Text style={styles.textStyle}>View: 10</Text>
+            </View>
           </View>
-          <View style={[styles.TopView, {flex: 0.6}]}>
-            <Text style={styles.textStyleLine}>
-              Your Video Must Be Longer Than One Minute
-            </Text>
-          </View>
-          <View style={[styles.TopView, {flex: 0.4}]}>
-            <Text style={styles.textStyle}>View: 10</Text>
-          </View>
-        </View>
+        )}
+
         <View
           style={{
             flexWrap: 'wrap',
@@ -75,11 +91,12 @@ const WebViewWindow = ({navigation}: any) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          {UrlWeb.map((item: any) => (
-            <>
-              <WebViewPage Requesturl={item.url} />
-            </>
-          ))}
+          {webData.length != 0 &&
+            webData.map((item: any) => (
+              <>
+                <WebViewPage Requesturl={item.url} />
+              </>
+            ))}
         </View>
         <TouchableWithoutFeedback
           onPress={() => {

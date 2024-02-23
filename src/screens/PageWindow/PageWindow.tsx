@@ -13,17 +13,17 @@ import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
 import {isIOS, isValidUrl} from '../../helper/appUtils';
 const {scaleFont, scaleSize} = Mixins;
-const PageWindow = ({navigation}: any) => {
+const PageWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
   const [value, setValue] = useState<any>('');
   const [Customevalue, setCustomevalue] = useState<any>(0);
   const [windowScreen, setWindowScreen] = useState<number>(0);
+  const data = route?.params?.item;
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
       console.log('inside onFocus');
     }
   };
-  console.log('windowScreen', Customevalue);
 
   const onBlurHandler = () => {
     if (Platform.OS === 'android') {
@@ -103,7 +103,14 @@ const PageWindow = ({navigation}: any) => {
                 style={styles.buttonClick}
                 onPress={() => {
                   console.log('CLICK');
-                  navigation.navigate('WebViewWindow');
+                  if (value != '' && (windowScreen != 0 || Customevalue != 0)) {
+                    navigation.navigate('WebViewWindow', {
+                      item: data,
+                      link: value,
+                      windowScreen: windowScreen,
+                      Customevalue: Customevalue,
+                    });
+                  }
                 }}>
                 <Text style={styles.buttonTextStyle}>Click</Text>
               </TouchableOpacity>
