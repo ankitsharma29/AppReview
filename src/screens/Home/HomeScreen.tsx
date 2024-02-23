@@ -53,7 +53,7 @@ const HomeScreen = ({navigation}: any) => {
   };
   return (
     <View style={styles.containe}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={{flexGrow:1}}>
         <View style={{margin: scaleSize(10)}}>
           {HomeData.map((item: any, index: number) => (
             <>

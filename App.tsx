@@ -6,6 +6,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Colors from './src/resource/theme/color';
 import PageWindow from './src/screens/PageWindow/PageWindow';
+import WebViewWindow from './src/screens/WebViewWindow/WebViewWindow';
+import WebViewPage from './src/components/WebViewPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +56,8 @@ const App = () => {
         />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="PageWindow" component={PageWindow} />
+        <Stack.Screen name="WebViewWindow" component={WebViewWindow} />
+        <Stack.Screen name="WebViewPage" component={WebViewPage} />
       </Stack.Navigator>
     </NavigationContainer>
   );

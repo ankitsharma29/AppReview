@@ -13,7 +13,7 @@ import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
 import {isIOS, isValidUrl} from '../../helper/appUtils';
 const {scaleFont, scaleSize} = Mixins;
-const PageWindow = () => {
+const PageWindow = ({navigation}: any) => {
   const inputRef = useRef(null);
   const [value, setValue] = useState<any>('');
   const [Customevalue, setCustomevalue] = useState<any>(0);
@@ -103,6 +103,7 @@ const PageWindow = () => {
                 style={styles.buttonClick}
                 onPress={() => {
                   console.log('CLICK');
+                  navigation.navigate('WebViewWindow');
                 }}>
                 <Text style={styles.buttonTextStyle}>Click</Text>
               </TouchableOpacity>
