@@ -32,8 +32,16 @@ const WebViewWindow = ({navigation, route}: any) => {
   const [CustomeMinutes, setCustomeMinutes] = useState<any>(0);
 
   const [webData, setwebData] = useState<any>([]);
+  const [ViewShow, setViewShow] = useState<any>(0);
   useEffect(() => {
-    for (let value = 0; value < Customevalue; value++) {
+    let windowArray: any = 0;
+    if (Customevalue >= windowScreen) {
+      windowArray = Customevalue;
+    } else {
+      windowArray = windowScreen;
+    }
+    setViewShow(windowArray)
+    for (let value = 0; value < windowArray; value++) {
       setwebData((prevState: any) => [
         ...prevState,
         {
@@ -79,7 +87,7 @@ const WebViewWindow = ({navigation, route}: any) => {
               </Text>
             </View>
             <View style={[styles.TopView, {flex: 0.4}]}>
-              <Text style={styles.textStyle}>View: 10</Text>
+              <Text style={styles.textStyle}>View: {ViewShow}</Text>
             </View>
           </View>
         )}

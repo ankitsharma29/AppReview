@@ -12,12 +12,15 @@ import Colors from '../../resource/theme/color';
 import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
 import {isIOS, isValidUrl} from '../../helper/appUtils';
+import ErrorComponent from '../../components/ErrorComponent';
 const {scaleFont, scaleSize} = Mixins;
 const PageWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
   const [value, setValue] = useState<any>('');
   const [Customevalue, setCustomevalue] = useState<any>(0);
   const [windowScreen, setWindowScreen] = useState<number>(0);
+  const [errorMessageRes, setErrorMessageRes] = useState<string>('');
+  const [WindowSelectFlag, setWindowSelectFlag] = useState<any>(-1);
   const data = route?.params?.item;
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
@@ -35,6 +38,7 @@ const PageWindow = ({navigation, route}: any) => {
     console.log('onChangeText');
     setValue(value);
     isValidUrl(value);
+    setErrorMessageRes('');
   };
   const DataButton = [
     {
@@ -72,18 +76,34 @@ const PageWindow = ({navigation, route}: any) => {
             <Text style={styles.textStyle}>Choose Any One*</Text>
 
             <View style={styles.buttonSubContainer}>
-              {DataButton.map((item: any) => (
+              {DataButton.map((item: any, index: number) => (
                 <>
                   <TouchableOpacity
-                    style={styles.button}
+                    style={[
+                      styles.button,
+                      {
+                        backgroundColor:
+                          WindowSelectFlag == index
+                            ? Colors.green9()
+                            : '#0B4960',
+                        borderColor:
+                          WindowSelectFlag == index
+                            ? Colors.white()
+                            : Colors.black(),
+                      },
+                    ]}
                     onPress={() => {
+                      setErrorMessageRes('');
                       setWindowScreen(item.number);
+                      setWindowSelectFlag(index);
                     }}>
                     <Text style={styles.buutonTextStyle}>{item.value}</Text>
                   </TouchableOpacity>
                 </>
               ))}
             </View>
+
+            <Text style={styles.textor}>or</Text>
 
             <View style={{marginVertical: scaleSize(10)}}>
               <TextInput
@@ -92,7 +112,10 @@ const PageWindow = ({navigation, route}: any) => {
                 onFocus={onFocusHandler}
                 onBlur={onBlurHandler}
                 ref={inputRef}
-                onChangeText={setCustomevalue}
+                onChangeText={(value: any) => {
+                  setCustomevalue(value);
+                  setErrorMessageRes('');
+                }}
                 maxLength={3}
                 keyboardType="decimal-pad"
                 style={styles.input}
@@ -103,6 +126,17 @@ const PageWindow = ({navigation, route}: any) => {
                 style={styles.buttonClick}
                 onPress={() => {
                   console.log('CLICK');
+                  if (windowScreen == 0 && Customevalue == 0) {
+                    setErrorMessageRes(
+                      'Please Select Window or please provide custome window number',
+                    );
+                    return;
+                  } else if (value == '' || !isValidUrl(value)) {
+                    setErrorMessageRes(
+                      'Please add the Youtube or Instagram link!',
+                    );
+                    return;
+                  }
                   if (value != '' && (windowScreen != 0 || Customevalue != 0)) {
                     navigation.navigate('WebViewWindow', {
                       item: data,
@@ -116,6 +150,12 @@ const PageWindow = ({navigation, route}: any) => {
               </TouchableOpacity>
             </View>
           </View>
+          {errorMessageRes != '' && (
+            <ErrorComponent
+              style={styles.errorStyle}
+              message={errorMessageRes}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
@@ -136,10 +176,17 @@ const styles = StyleSheet.create({
     marginVertical: scaleSize(10),
   },
   textStyle: {
-    fontSize: 18,
+    fontSize: scaleSize(18),
     fontFamily: Fonts.poppinsMediumItalic,
     color: Colors.black(),
     padding: scaleSize(5),
+  },
+  textor: {
+    fontSize: scaleSize(16),
+    fontFamily: Fonts.poppinsRegular,
+    color: Colors.gray(),
+    padding: scaleSize(5),
+    textAlign: 'center',
   },
   buttonSubContainer: {
     flexDirection: 'row',
@@ -154,6 +201,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     margin: scaleSize(5),
+    borderWidth: 1,
   },
   buutonTextStyle: {
     fontSize: scaleSize(16),
@@ -185,6 +233,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.poppinsBold,
     color: Colors.black(),
     padding: scaleSize(5),
+  },
+  errorStyle: {
+    marginTop: scaleSize(10),
   },
 });
 export default PageWindow;
