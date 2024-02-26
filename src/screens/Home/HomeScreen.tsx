@@ -25,13 +25,13 @@ const HomeScreen = ({navigation}: any) => {
       title: 'Get More Views In Multiple Tab',
       des: '',
       screen: 'PageWindow',
-      flag: 'addMinutes',
+      flag: 'autoPlay',
     },
     {
       title: 'When The Video Ends, it Will Play Again Automatically',
       des: '',
       screen: 'PageWindow',
-      flag: 'autoPlay',
+      flag: 'addMinutes',
     },
     {
       title: 'Learn more about these Apps',

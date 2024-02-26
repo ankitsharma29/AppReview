@@ -29,7 +29,7 @@ const WebViewWindow = ({navigation, route}: any) => {
   const [modalVisible, setModalVisible] = useState(
     data.flag == 'addMinutes' && true,
   );
-  const [CustomeMinutes, setCustomeMinutes] = useState<any>(0);
+  const [CustomeMinutes, setCustomeMinutes] = useState<any>(60);
 
   const [webData, setwebData] = useState<any>([]);
   const [ViewShow, setViewShow] = useState<any>(0);
@@ -77,7 +77,7 @@ const WebViewWindow = ({navigation, route}: any) => {
               margin: scaleSize(10),
             }}>
             <View style={[styles.TopView, {flex: 0.2}]}>
-              <Text style={styles.textStyle}>60</Text>
+              <Text style={styles.textStyle}>{CustomeMinutes}</Text>
             </View>
             <View style={[styles.TopView, {flex: 0.6}]}>
               <Text style={styles.textStyleLine}>
@@ -91,7 +91,7 @@ const WebViewWindow = ({navigation, route}: any) => {
             </View>
           </View>
         )}
-
+        
         <View
           style={{
             flexWrap: 'wrap',
