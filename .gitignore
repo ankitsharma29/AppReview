@@ -24,6 +24,7 @@ ios/.xcode.env.local
 
 # Android/IntelliJ
 #
+release/
 build/
 .idea
 .gradle
@@ -32,6 +33,7 @@ local.properties
 *.hprof
 .cxx/
 *.keystore
+*.apk
 !debug.keystore
 
 # node.js
