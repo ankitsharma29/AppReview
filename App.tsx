@@ -8,6 +8,8 @@ import Colors from './src/resource/theme/color';
 import PageWindow from './src/screens/PageWindow/PageWindow';
 import WebViewWindow from './src/screens/WebViewWindow/WebViewWindow';
 import WebViewPage from './src/components/WebViewPage';
+import { navigationRef, onReady } from './src/helper/RootNavigation';
+import { trackScreenView } from './src/helper/ScreenTracking';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,9 +36,19 @@ const stackScreenOptions = {
   },
 };
 const App = () => {
-
+  const routeNameRef = React.useRef();
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}
+    onReady={onReady}
+    onStateChange={async () => {
+      const previousRouteName = routeNameRef.current;
+      const currentRouteName = navigationRef.getCurrentRoute().name;
+
+      if (previousRouteName !== currentRouteName) {
+        routeNameRef.current = currentRouteName;
+        await trackScreenView(currentRouteName, 'AppReview');
+      }
+    }}>
       <StatusBar
         backgroundColor={'white'}
         barStyle={'dark-content'}
