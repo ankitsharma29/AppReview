@@ -29,10 +29,33 @@ const WebViewWindow = ({navigation, route}: any) => {
   const [modalVisible, setModalVisible] = useState(
     data.flag == 'addMinutes' && true,
   );
-  const [CustomeMinutes, setCustomeMinutes] = useState<any>(60);
+  const [CustomeMinutes, setCustomeMinutes] = useState<number | any>(60);
 
   const [webData, setwebData] = useState<any>([]);
   const [ViewShow, setViewShow] = useState<any>(0);
+
+  const [timer, setTimer] = useState<number | any>(60);
+  const [inactiveDate, setInactiveDate] = useState(new Date());
+  const [isTimeExpired, setIsTimeExpired] = useState(false);
+  const [stopTimer, setStopTimer] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (timer === 0 && interval) {
+        console.log('clear');
+        navigation.goBack();
+        clearInterval(interval);
+        return;
+      }
+      timer > 0 && setTimer(timer - 1);
+    }, 1000);
+
+    return () => {
+      interval && clearInterval(interval);
+    };
+  }, [timer]);
+
+  // web url windows
   useEffect(() => {
     let windowArray: any = 0;
     if (Customevalue >= windowScreen) {
@@ -40,7 +63,7 @@ const WebViewWindow = ({navigation, route}: any) => {
     } else {
       windowArray = windowScreen;
     }
-    setViewShow(windowArray)
+    setViewShow(windowArray);
     for (let value = 0; value < windowArray; value++) {
       setwebData((prevState: any) => [
         ...prevState,
@@ -51,7 +74,6 @@ const WebViewWindow = ({navigation, route}: any) => {
       ]);
     }
   }, []);
-  console.log('webData', webData);
 
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
@@ -77,7 +99,7 @@ const WebViewWindow = ({navigation, route}: any) => {
               margin: scaleSize(10),
             }}>
             <View style={[styles.TopView, {flex: 0.2}]}>
-              <Text style={styles.textStyle}>{CustomeMinutes}</Text>
+              <Text style={styles.textStyle}>{timer}</Text>
             </View>
             <View style={[styles.TopView, {flex: 0.6}]}>
               <Text style={styles.textStyleLine}>
@@ -91,7 +113,7 @@ const WebViewWindow = ({navigation, route}: any) => {
             </View>
           </View>
         )}
-        
+
         <View
           style={{
             flexWrap: 'wrap',
@@ -144,7 +166,10 @@ const WebViewWindow = ({navigation, route}: any) => {
                       onFocus={onFocusHandler}
                       onBlur={onBlurHandler}
                       ref={inputRef}
-                      onChangeText={setCustomeMinutes}
+                      onChangeText={value => {
+                        setCustomeMinutes(value);
+                        setTimer(value);
+                      }}
                       maxLength={3}
                       keyboardType="decimal-pad"
                       style={styles.input}

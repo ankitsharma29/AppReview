@@ -11,7 +11,7 @@ import {AppImages, BonusDisable} from '../../assets/constant';
 import Fonts from '../../resource/theme/font';
 import Colors from '../../resource/theme/color';
 import Mixins from '../../resource/mixins/appStyle';
-import {openUrl} from '../../helper/appUtils';
+import {openUrl, setCrashlaticsLog} from '../../helper/appUtils';
 const {scaleFont, scaleSize} = Mixins;
 const HomeScreen = ({navigation}: any) => {
   const HomeData = [
@@ -42,14 +42,22 @@ const HomeScreen = ({navigation}: any) => {
   ];
 
   const navigationScreen = (item: any) => {
-    if (item.flag == 'link') {
-      openUrl(
-        'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
-      );
-    } else {
-      navigation.navigate('PageWindow', {item: item});
+    try {
+      if (item.flag == 'link') {
+        openUrl(
+          'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
+        );
+      } else {
+        navigation.navigate('PageWindow', {item: item});
+      }
+      console.log('click');
+    } catch (error) {
+      // console.log("error",error.stack);
+      // console.log("error",error.message);
+      setCrashlaticsLog(error);
+      
     }
-    console.log('click');
+  
   };
   return (
     <View style={styles.containe}>

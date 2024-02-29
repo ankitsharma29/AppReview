@@ -108,6 +108,11 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Add the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation(platform("com.google.firebase:firebase-bom:32.7.3"))
+    implementation "com.google.firebase:firebase-crashlytics"
     
         // Local Push Notification
     implementation 'com.google.firebase:firebase-analytics:21.1.0'

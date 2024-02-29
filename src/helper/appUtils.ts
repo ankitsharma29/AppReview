@@ -7,6 +7,8 @@ export const isAndroid = Platform.OS === 'android';
 export const otpInputLength = 6;
 export const screenWidth = Dimensions.get('window').width;
 export const screenHeight = Dimensions.get('window').height;
+import crashlytics from '@react-native-firebase/crashlytics';
+
 
 export const fetchDeniedPopUp = () => {
   Alert.alert(
@@ -70,3 +72,15 @@ export const isValidUrl = (url: string) => {
     return false;
   }
 };
+
+
+export const setCrashlaticsLog = async (message: any) => {
+  console.log("message", message);
+
+  await crashlytics().log(message);
+}
+
+export const setCrashlaticsAttaributs = async (data: any) => {
+  await crashlytics().setAttributes(data)
+
+}
