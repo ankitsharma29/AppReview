@@ -26,33 +26,34 @@ const WebViewWindow = ({navigation, route}: any) => {
   const UrlWeb = route?.params?.link;
   const Customevalue = route?.params?.Customevalue;
   const windowScreen = route?.params?.windowScreen;
-  const [modalVisible, setModalVisible] = useState(
-    data.flag == 'addMinutes' && true,
-  );
-  const [CustomeMinutes, setCustomeMinutes] = useState<number | any>(60);
 
   const [webData, setwebData] = useState<any>([]);
   const [ViewShow, setViewShow] = useState<any>(0);
 
-  const [timer, setTimer] = useState<number | any>(60);
-  const [inactiveDate, setInactiveDate] = useState(new Date());
-  const [isTimeExpired, setIsTimeExpired] = useState(false);
-  const [stopTimer, setStopTimer] = useState(false);
+  const [timer, setTimer] = useState<number | any>(
+    data.flag === 'addMinutes' ? route?.params?.CustomeMinutes : 60,
+  );
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (timer === 0 && interval) {
-        console.log('clear');
-        navigation.goBack();
-        clearInterval(interval);
-        return;
-      }
-      timer > 0 && setTimer(timer - 1);
-    }, 1000);
+    try {
+      if (data.flag != 'autoPlay') {
+        const interval = setInterval(() => {
+          if (timer === 0 && interval) {
+            console.log('clear');
+            navigation.goBack();
+            clearInterval(interval);
+            return;
+          }
+          timer > 0 && setTimer(timer - 1);
+        }, 1000);
 
-    return () => {
-      interval && clearInterval(interval);
-    };
+        return () => {
+          interval && clearInterval(interval);
+        };
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
   }, [timer]);
 
   // web url windows
@@ -128,67 +129,6 @@ const WebViewWindow = ({navigation, route}: any) => {
               </>
             ))}
         </View>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            setModalVisible(!modalVisible);
-          }}>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              setModalVisible(!modalVisible);
-            }}>
-            <TouchableOpacity
-              style={styles.centeredView}
-              activeOpacity={1}
-              onPressOut={() => {
-                setModalVisible(!modalVisible);
-              }}>
-              <View>
-                <View style={styles.modalView}>
-                  <Text style={styles.modeltext}>
-                    After how Many seconds you want your video to Re play
-                    automatically again
-                  </Text>
-                  <Text style={styles.modeltext}>
-                    If your video is 5 minutes then you give 60x5=300 so you
-                    want to play video you have to write
-                  </Text>
-                  <View style={{marginVertical: scaleSize(10)}}>
-                    <Text style={[styles.modeltext, {textAlign: 'left'}]}>
-                      Only Seconds*
-                    </Text>
-                    <TextInput
-                      value={CustomeMinutes}
-                      placeholder="Enter Seconds Here..."
-                      placeholderTextColor={Colors.gray()}
-                      onFocus={onFocusHandler}
-                      onBlur={onBlurHandler}
-                      ref={inputRef}
-                      onChangeText={value => {
-                        setCustomeMinutes(value);
-                        setTimer(value);
-                      }}
-                      maxLength={3}
-                      keyboardType="decimal-pad"
-                      style={styles.input}
-                    />
-                  </View>
-                  <View style={styles.modelrowview}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setModalVisible(!modalVisible);
-                      }}
-                      style={styles.buttoncancel}>
-                      <Text style={styles.canceltext}>Submit</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </Modal>
-        </TouchableWithoutFeedback>
       </ScrollView>
     </View>
   );
@@ -236,57 +176,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: scaleSize(5),
     paddingHorizontal: isIOS ? scaleSize(0) : scaleSize(10),
-  },
-
-  //Model Styles
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,.7)',
-  },
-  modalView: {
-    width: '95%',
-    height: 300,
-    marginHorizontal: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.white(),
-    borderRadius: 5,
-    shadowColor: Colors.black(),
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modelrowview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    marginTop: 15,
-  },
-  modeltext: {
-    fontSize: scaleFont(16),
-    fontFamily: Fonts.poppinsRegular,
-    color: Colors.black(),
-    lineHeight: scaleSize(30),
-    textAlign: 'center',
-  },
-  buttoncancel: {
-    height: scaleSize(40),
-    width: scaleSize(120),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.gradientTop(),
-    borderRadius: 5,
-  },
-
-  canceltext: {
-    fontSize: scaleFont(16),
-    fontFamily: Fonts.poppinsRegular,
-    color: Colors.white(),
   },
 });
