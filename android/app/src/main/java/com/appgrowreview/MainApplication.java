@@ -1,4 +1,4 @@
-package com.appreview;
+package com.appgrowreview;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

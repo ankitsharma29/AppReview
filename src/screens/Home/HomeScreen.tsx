@@ -117,11 +117,11 @@ const HomeScreen = ({navigation}: any) => {
                 onPress={async () => {
                   if (isIOS) {
                     openUrl(
-                      'https://play.google.com/store/apps/details?id=com.appreview&hl=en_IN&gl=US',
+                      'https://play.google.com/store/apps/details?id=com.appgrowreview&hl=en_IN&gl=US',
                     );
                   } else {
                     openUrl(
-                      'https://play.google.com/store/apps/details?id=com.appreview&hl=en_IN&gl=US',
+                      'https://play.google.com/store/apps/details?id=com.appgrowreview&hl=en_IN&gl=US',
                     );
                   }
                 }}

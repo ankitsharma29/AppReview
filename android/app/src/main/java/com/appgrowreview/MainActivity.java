@@ -1,4 +1,4 @@
-package com.appreview;
+package com.appgrowreview;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
