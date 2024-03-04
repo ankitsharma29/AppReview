@@ -81,9 +81,9 @@ const App = () => {
       } else {
         PushNotification.createChannel(
           {
-            channelId: 'Driver', // (required)
-            channelName: 'Driver', // (required)
-            channelDescription: 'Notification for dmrc', // (optional) default: undefined.
+            channelId: 'AppReview', // (required)
+            channelName: 'AppReview', // (required)
+            channelDescription: 'Notification for View Grow', // (optional) default: undefined.
             importance: 4, // (optional) default: 4. Int value of the Android notification importance
             vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
           },
@@ -91,7 +91,7 @@ const App = () => {
         );
 
         PushNotification.localNotification({
-          channelId: 'Driver',
+          channelId: 'AppReview',
           message: remoteMessage?.notification?.body ?? '',
           title: remoteMessage?.notification?.title,
           bigPictureUrl: remoteMessage?.notification?.android?.imageUrl,
