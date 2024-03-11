@@ -199,7 +199,7 @@ const App = () => {
         translucent={false}
       />
       <Stack.Navigator
-        initialRouteName="TodoFireStore"
+        initialRouteName="Home"
         screenOptions={stackScreenOptions}>
         <Stack.Screen
           name="Home"
