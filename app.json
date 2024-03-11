@@ -1,4 +1,8 @@
 {
   "name": "AppReview",
-  "displayName": "AppReview"
+  "displayName": "AppReview",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-4293747280421578~4017969113",
+    "ios_app_id": "ca-app-pub-4293747280421578~4017969113"
+  }
 }

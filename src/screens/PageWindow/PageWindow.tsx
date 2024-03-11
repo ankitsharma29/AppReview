@@ -15,6 +15,7 @@ import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
 import {isIOS, isValidUrl} from '../../helper/appUtils';
 import ErrorComponent from '../../components/ErrorComponent';
+import BannerAds from '../../components/Ads/BannerAds';
 const {scaleFont, scaleSize} = Mixins;
 const PageWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
@@ -226,6 +227,7 @@ const PageWindow = ({navigation, route}: any) => {
               </View>
             </Modal>
           </TouchableWithoutFeedback>
+          <BannerAds />
         </View>
       </ScrollView>
     </View>

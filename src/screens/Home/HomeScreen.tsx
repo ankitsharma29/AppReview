@@ -15,6 +15,7 @@ import Mixins from '../../resource/mixins/appStyle';
 import {isIOS, openUrl, setCrashlaticsLog} from '../../helper/appUtils';
 import {checkVersion} from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
+import BannerAds from '../../components/Ads/BannerAds';
 const {scaleFont, scaleSize} = Mixins;
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -100,6 +101,7 @@ const HomeScreen = ({navigation}: any) => {
               </View>
             </>
           ))}
+          <BannerAds />
         </View>
       </ScrollView>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
