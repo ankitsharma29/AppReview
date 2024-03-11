@@ -16,6 +16,7 @@ import {isIOS, openUrl, setCrashlaticsLog} from '../../helper/appUtils';
 import {checkVersion} from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
+import RewardAds from '../../components/Ads/RewardAds';
 const {scaleFont, scaleSize} = Mixins;
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -46,8 +47,10 @@ const HomeScreen = ({navigation}: any) => {
     },
   ];
 
+  const [RewardAdsShow, setRewardAdsShow] = useState<boolean>(false);
   const navigationScreen = (item: any) => {
     try {
+      setRewardAdsShow(true);
       if (item.flag == 'link') {
         openUrl(
           'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
@@ -102,6 +105,7 @@ const HomeScreen = ({navigation}: any) => {
             </>
           ))}
           <BannerAds />
+          {RewardAdsShow && <RewardAds />}
         </View>
       </ScrollView>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
