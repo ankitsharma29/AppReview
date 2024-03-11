@@ -18,6 +18,7 @@ import notificationManager from './src/helper/notificationManager';
 import firebase from '@react-native-firebase/app';
 import database from '@react-native-firebase/database';
 import TodoApp from './src/screens/Todos/Todo';
+import TodoFireStore from './src/screens/Todos/TodoFireStore';
 
 const Stack = createNativeStackNavigator();
 
@@ -198,7 +199,7 @@ const App = () => {
         translucent={false}
       />
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="TodoFireStore"
         screenOptions={stackScreenOptions}>
         <Stack.Screen
           name="Home"
@@ -212,6 +213,7 @@ const App = () => {
         <Stack.Screen name="WebViewWindow" component={WebViewWindow} />
         <Stack.Screen name="WebViewPage" component={WebViewPage} />
         <Stack.Screen name="TodoApp" component={TodoApp} />
+        <Stack.Screen name="TodoFireStore" component={TodoFireStore} />
       </Stack.Navigator>
     </NavigationContainer>
   );
