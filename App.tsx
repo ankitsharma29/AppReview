@@ -15,6 +15,9 @@ import PushNotificationIos from '@react-native-community/push-notification-ios';
 import {check, PERMISSIONS, RESULTS, request} from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import notificationManager from './src/helper/notificationManager';
+import firebase from '@react-native-firebase/app';
+import database from '@react-native-firebase/database';
+import TodoApp from './src/screens/Todos/Todo';
 
 const Stack = createNativeStackNavigator();
 
@@ -166,6 +169,16 @@ const App = () => {
   };
 
   const routeNameRef = React.useRef();
+
+  // Your Firebase config
+  const firebaseConfig = {
+    // Your config details here
+  };
+
+  // Initialize Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
   return (
     <NavigationContainer
       ref={navigationRef}
@@ -198,6 +211,7 @@ const App = () => {
         <Stack.Screen name="PageWindow" component={PageWindow} />
         <Stack.Screen name="WebViewWindow" component={WebViewWindow} />
         <Stack.Screen name="WebViewPage" component={WebViewPage} />
+        <Stack.Screen name="TodoApp" component={TodoApp} />
       </Stack.Navigator>
     </NavigationContainer>
   );
