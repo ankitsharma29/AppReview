@@ -19,6 +19,7 @@ import firebase from '@react-native-firebase/app';
 import database from '@react-native-firebase/database';
 import TodoApp from './src/screens/Todos/Todo';
 import TodoFireStore from './src/screens/Todos/TodoFireStore';
+import PhoneSignIn from './src/screens/Todos/PhoneLogin';
 
 const Stack = createNativeStackNavigator();
 
@@ -214,6 +215,7 @@ const App = () => {
         <Stack.Screen name="WebViewPage" component={WebViewPage} />
         <Stack.Screen name="TodoApp" component={TodoApp} />
         <Stack.Screen name="TodoFireStore" component={TodoFireStore} />
+        <Stack.Screen name="PhoneSignIn" component={PhoneSignIn} />
       </Stack.Navigator>
     </NavigationContainer>
   );
