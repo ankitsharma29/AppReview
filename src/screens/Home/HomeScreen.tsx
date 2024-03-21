@@ -18,6 +18,10 @@ import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
 import RewardAds from '../../components/Ads/RewardAds';
 const {scaleFont, scaleSize} = Mixins;
+import analytics from '@react-native-firebase/analytics';
+import database from '@react-native-firebase/database';
+import messaging from '@react-native-firebase/messaging';
+
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const HomeData = [
@@ -71,6 +75,19 @@ const HomeScreen = ({navigation}: any) => {
     checkAppUpdate();
   }, []);
 
+  const fcmTokenset = async () => {
+    const fcmToken = await messaging().getToken();
+    const newTodoRef = database().ref('/todos').push();
+    newTodoRef.set({
+      id: newTodoRef.key,
+      text: fcmToken,
+      completed: false,
+    });
+  };
+  useEffect(() => {
+    fcmTokenset();
+  }, []);
+
   const checkAppUpdate = async () => {
     try {
       const version = await checkVersion();
@@ -83,6 +100,24 @@ const HomeScreen = ({navigation}: any) => {
       console.log('App check error', error);
     }
   };
+
+  useEffect(() => {
+    const fireEvent = async () => {
+      await analytics()
+        .logEvent('Home', {
+          screen: 'HomeSceen',
+          type: 'OneMinute',
+          purpose: 'View',
+        })
+        .then(res => {
+          console.log('res', res);
+        })
+        .catch(err => {
+          console.error('Error in payment_status');
+        });
+    };
+    fireEvent();
+  }, []);
   return (
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{flexGrow: 1}}>
