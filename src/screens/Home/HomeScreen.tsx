@@ -186,7 +186,7 @@ const HomeScreen = ({navigation}: any) => {
                   }
                 }}
                 style={styles.buttonUpdate}>
-                <Text style={styles.Updatetext}>UPdate Now</Text>
+                <Text style={styles.Updatetext}>Update Now</Text>
               </TouchableOpacity>
             </View>
           </View>
