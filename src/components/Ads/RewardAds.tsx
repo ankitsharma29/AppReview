@@ -14,7 +14,7 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ['fashion', 'clothing'],
 });
 
-const RewardAds = () => {
+const RewardAds = ({VisibleReward = false}: any) => {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -46,13 +46,19 @@ const RewardAds = () => {
     return null;
   }
 
+  useEffect(() => {
+    if (VisibleReward) {
+      rewarded.show();
+    }
+  }, [VisibleReward]);
   return (
-    <Button
-      title="Show Rewarded Ad"
-      onPress={() => {
-        rewarded.show();
-      }}
-    />
+    // <Button
+    //   title="Show Rewarded Ad"
+    //   onPress={() => {
+    //     rewarded.show();
+    //   }}
+    // />
+    <></>
   );
 };
 

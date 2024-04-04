@@ -16,6 +16,20 @@ import Fonts from '../../resource/theme/font';
 import {isIOS, isValidUrl} from '../../helper/appUtils';
 import ErrorComponent from '../../components/ErrorComponent';
 import BannerAds from '../../components/Ads/BannerAds';
+import {
+  RewardedAd,
+  RewardedAdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
+
+const adUnitId = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-4293747280421578/6606751237';
+
+const rewarded = RewardedAd.createForAdRequest(adUnitId, {
+  keywords: ['fashion', 'clothing'],
+});
+
 const {scaleFont, scaleSize} = Mixins;
 const PageWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
@@ -63,6 +77,39 @@ const PageWindow = ({navigation, route}: any) => {
       number: 50,
     },
   ];
+
+  // Reward ads
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const unsubscribeLoaded = rewarded.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        setLoaded(true);
+      },
+    );
+    const unsubscribeEarned = rewarded.addAdEventListener(
+      RewardedAdEventType.EARNED_REWARD,
+      reward => {
+        console.log('User earned reward of ', reward);
+      },
+    );
+
+    // Start loading the rewarded ad straight away
+    rewarded.load();
+
+    // Unsubscribe from events on unmount
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeEarned();
+    };
+  }, []);
+
+  // No advert ready to show yet
+  // if (!loaded) {
+  //   return null;
+  // }
+
 
   return (
     <View style={styles.containe}>
@@ -150,6 +197,7 @@ const PageWindow = ({navigation, route}: any) => {
                     value != '' &&
                     (windowScreen != 0 || Customevalue != 0)
                   ) {
+                    rewarded.show();
                     navigation.navigate('WebViewWindow', {
                       item: data,
                       link: value,

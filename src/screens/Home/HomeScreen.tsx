@@ -17,6 +17,20 @@ import {checkVersion} from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
 import RewardAds from '../../components/Ads/RewardAds';
+import {
+  RewardedAd,
+  RewardedAdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
+
+const adUnitId = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-4293747280421578/6606751237';
+
+const rewarded = RewardedAd.createForAdRequest(adUnitId, {
+  keywords: ['fashion', 'clothing'],
+});
+
 const {scaleFont, scaleSize} = Mixins;
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -50,17 +64,19 @@ const HomeScreen = ({navigation}: any) => {
   const [RewardAdsShow, setRewardAdsShow] = useState<boolean>(false);
   const navigationScreen = (item: any) => {
     try {
-      setRewardAdsShow(true);
       if (item.flag == 'link') {
         openUrl(
           'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
         );
       } else {
+        // setRewardAdsShow(true);
+        rewarded.show();
         navigation.navigate('PageWindow', {item: item});
       }
       console.log('click');
     } catch (error) {
       // console.log("error",error.stack);
+      navigation.navigate('PageWindow', {item: item});
       // console.log("error",error.message);
       setCrashlaticsLog(error);
     }
@@ -83,6 +99,41 @@ const HomeScreen = ({navigation}: any) => {
       console.log('App check error', error);
     }
   };
+
+
+    // Reward ads
+    const [loaded, setLoaded] = useState(false);
+
+    useEffect(() => {
+      const unsubscribeLoaded = rewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setLoaded(true);
+        },
+      );
+      const unsubscribeEarned = rewarded.addAdEventListener(
+        RewardedAdEventType.EARNED_REWARD,
+        reward => {
+          console.log('User earned reward of ', reward);
+        },
+      );
+  
+      // Start loading the rewarded ad straight away
+      rewarded.load();
+  
+      // Unsubscribe from events on unmount
+      return () => {
+        unsubscribeLoaded();
+        unsubscribeEarned();
+      };
+    }, []);
+  
+    // No advert ready to show yet
+    // if (!loaded) {
+    //   return null;
+    // }
+
+    
   return (
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{flexGrow: 1}}>
@@ -104,8 +155,11 @@ const HomeScreen = ({navigation}: any) => {
               </View>
             </>
           ))}
+          {/* Banner Ad show */}
           <BannerAds />
-          {RewardAdsShow && <RewardAds />}
+
+          {/* Reward Ad show */}
+          {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
         </View>
       </ScrollView>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
