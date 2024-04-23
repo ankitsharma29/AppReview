@@ -19,6 +19,7 @@ import WebView from 'react-native-webview';
 import CommonLoader from '../../components/CommonLoader';
 import Fonts from '../../resource/theme/font';
 import {isIOS} from '../../helper/appUtils';
+import BannerAds from '../../components/Ads/BannerAds';
 const {scaleFont, scaleSize} = Mixins;
 const WebViewWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
@@ -114,7 +115,7 @@ const WebViewWindow = ({navigation, route}: any) => {
             </View>
           </View>
         )}
-
+        <BannerAds />
         <View
           style={{
             flexWrap: 'wrap',
@@ -129,6 +130,7 @@ const WebViewWindow = ({navigation, route}: any) => {
               </>
             ))}
         </View>
+        <BannerAds />
       </ScrollView>
     </View>
   );
