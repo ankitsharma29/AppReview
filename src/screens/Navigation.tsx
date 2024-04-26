@@ -29,7 +29,7 @@ const stackScreenOptions = {
   headerMode: 'screen',
   headerTintColor: 'black',
   headerTitleAlign: 'center',
-  headerStyle: {backgroundColor: Colors.gradientBottom()},
+  headerStyle: {backgroundColor: Colors.orange1()},
   cardStyleInterpolator: ({current, layouts}) => {
     return {
       cardStyle: {
@@ -201,7 +201,7 @@ const Navigation = () => {
         }
       }}>
       <StatusBar
-        backgroundColor={Colors.gradientBottom()}
+        backgroundColor={Colors.orange1()}
         barStyle={'dark-content'}
         translucent={false}
       />

@@ -110,7 +110,6 @@ const PageWindow = ({navigation, route}: any) => {
   //   return null;
   // }
 
-
   return (
     <View style={styles.containe}>
       <ScrollView>
@@ -178,26 +177,35 @@ const PageWindow = ({navigation, route}: any) => {
               <TouchableOpacity
                 style={styles.buttonClick}
                 onPress={() => {
-                  console.log('CLICK');
-                  if (windowScreen == 0 && Customevalue == 0) {
-                    setErrorMessageRes(
-                      'Please Select Window or please provide custome window number',
-                    );
-                    return;
-                  } else if (value == '' || !isValidUrl(value)) {
-                    setErrorMessageRes(
-                      'Please add the Youtube or Instagram link!',
-                    );
-                    return;
-                  }
+                  try {
+                    console.log('CLICK');
+                    if (windowScreen == 0 && Customevalue == 0) {
+                      setErrorMessageRes(
+                        'Please Select Window or please provide custome window number',
+                      );
+                      return;
+                    } else if (value == '' || !isValidUrl(value)) {
+                      setErrorMessageRes(
+                        'Please add the Youtube or Instagram link!',
+                      );
+                      return;
+                    }
 
-                  if (data.flag == 'addMinutes') {
-                    setModalVisible(true);
-                  } else if (
-                    value != '' &&
-                    (windowScreen != 0 || Customevalue != 0)
-                  ) {
-                    rewarded.show();
+                    if (data.flag == 'addMinutes') {
+                      setModalVisible(true);
+                    } else if (
+                      value != '' &&
+                      (windowScreen != 0 || Customevalue != 0)
+                    ) {
+                      rewarded.show();
+                      navigation.navigate('WebViewWindow', {
+                        item: data,
+                        link: value,
+                        windowScreen: windowScreen,
+                        Customevalue: Customevalue,
+                      });
+                    }
+                  } catch (error) {
                     navigation.navigate('WebViewWindow', {
                       item: data,
                       link: value,
@@ -342,7 +350,7 @@ const styles = StyleSheet.create({
   buttonClick: {
     width: '50%',
     padding: scaleSize(10),
-    backgroundColor: Colors.blue6(),
+    backgroundColor: Colors.gradientTop(),
     alignItems: 'center',
     borderRadius: 5,
     marginVertical: scaleSize(15),
