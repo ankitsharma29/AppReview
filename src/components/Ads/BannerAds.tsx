@@ -15,8 +15,8 @@ const BannerAds = () => {
   return (
     <BannerAd
       unitId={adUnitId1}
-      // size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-      size={"380x250"}
+      size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+      // size={"380x250"}
       onAdFailedToLoad={value => {
         console.log('value', value);
       }}

@@ -74,7 +74,7 @@ const HomeScreen = ({navigation}: any) => {
         );
       } else {
         // setRewardAdsShow(true);
-        rewarded.show();
+        // rewarded.show();
         navigation.navigate('PageWindow', {item: item});
       }
       console.log('click');
@@ -117,40 +117,38 @@ const HomeScreen = ({navigation}: any) => {
     }
   };
 
+  // Reward ads
+  const [loaded, setLoaded] = useState(false);
 
-    // Reward ads
-    const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const unsubscribeLoaded = rewarded.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        setLoaded(true);
+      },
+    );
+    const unsubscribeEarned = rewarded.addAdEventListener(
+      RewardedAdEventType.EARNED_REWARD,
+      reward => {
+        console.log('User earned reward of ', reward);
+      },
+    );
 
-    useEffect(() => {
-      const unsubscribeLoaded = rewarded.addAdEventListener(
-        RewardedAdEventType.LOADED,
-        () => {
-          setLoaded(true);
-        },
-      );
-      const unsubscribeEarned = rewarded.addAdEventListener(
-        RewardedAdEventType.EARNED_REWARD,
-        reward => {
-          console.log('User earned reward of ', reward);
-        },
-      );
-  
-      // Start loading the rewarded ad straight away
-      rewarded.load();
-  
-      // Unsubscribe from events on unmount
-      return () => {
-        unsubscribeLoaded();
-        unsubscribeEarned();
-      };
-    }, []);
-  
-    // No advert ready to show yet
-    // if (!loaded) {
-    //   return null;
-    // }
+    // Start loading the rewarded ad straight away
+    rewarded.load();
 
-    
+    // Unsubscribe from events on unmount
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeEarned();
+    };
+  }, []);
+
+  // No advert ready to show yet
+  // if (!loaded) {
+  //   return null;
+  // }
+
   useEffect(() => {
     const fireEvent = async () => {
       await analytics()
@@ -172,6 +170,8 @@ const HomeScreen = ({navigation}: any) => {
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View style={{margin: scaleSize(10)}}>
+          {/* Banner Ad show */}
+          <BannerAds />
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -191,7 +191,6 @@ const HomeScreen = ({navigation}: any) => {
           ))}
           {/* Banner Ad show */}
           <BannerAds />
-
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
         </View>

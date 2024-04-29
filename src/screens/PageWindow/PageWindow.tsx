@@ -197,7 +197,7 @@ const PageWindow = ({navigation, route}: any) => {
                       value != '' &&
                       (windowScreen != 0 || Customevalue != 0)
                     ) {
-                      rewarded.show();
+                      // rewarded.show();
                       navigation.navigate('WebViewWindow', {
                         item: data,
                         link: value,
