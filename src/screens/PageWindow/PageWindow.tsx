@@ -121,6 +121,7 @@ const PageWindow = ({navigation, route}: any) => {
               placeholder="Enter link here"
               onFocus={onFocusHandler}
               onBlur={onBlurHandler}
+              placeholderTextColor={Colors.gray11()}
               ref={inputRef}
               onChangeText={onChangeText}
               style={styles.input}
@@ -163,6 +164,7 @@ const PageWindow = ({navigation, route}: any) => {
                 placeholder="enter custome windows value"
                 onFocus={onFocusHandler}
                 onBlur={onBlurHandler}
+                placeholderTextColor={Colors.gray11()}
                 ref={inputRef}
                 onChangeText={(value: any) => {
                   setCustomevalue(value);
@@ -249,7 +251,7 @@ const PageWindow = ({navigation, route}: any) => {
                     <TextInput
                       value={CustomeMinutes}
                       placeholder="Enter Seconds Here..."
-                      placeholderTextColor={Colors.gray()}
+                      placeholderTextColor={Colors.gray11()}
                       onFocus={onFocusHandler}
                       onBlur={onBlurHandler}
                       ref={inputRef}
