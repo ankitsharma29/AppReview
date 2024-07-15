@@ -1,4 +1,4 @@
-import {Alert, Dimensions, PermissionsAndroid, Platform, PixelRatio, Linking} from 'react-native';
+import { Alert, Dimensions, PermissionsAndroid, Platform, PixelRatio, Linking } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Moment from 'moment';
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
@@ -8,7 +8,7 @@ export const otpInputLength = 6;
 export const screenWidth = Dimensions.get('window').width;
 export const screenHeight = Dimensions.get('window').height;
 import crashlytics from '@react-native-firebase/crashlytics';
-
+import messaging from '@react-native-firebase/messaging';
 
 export const fetchDeniedPopUp = () => {
   Alert.alert(
@@ -47,9 +47,9 @@ export const convertTime = (date: Date, format: string) => {
 const fontScale = PixelRatio.getFontScale();
 export const getFontSize = (size: number) => size / fontScale;
 
-export const setFont = (value: number, standardScreenHeight?: number): number =>  {
-  return RFValue(value,standardScreenHeight)
-   
+export const setFont = (value: number, standardScreenHeight?: number): number => {
+  return RFValue(value, standardScreenHeight)
+
 }
 
 export const openUrl = (url: any) => {
@@ -84,3 +84,13 @@ export const setCrashlaticsAttaributs = async (data: any) => {
   await crashlytics().setAttributes(data)
 
 }
+
+
+export const subscribeTopic = async (topic: any) => {
+  messaging()
+    .subscribeToTopic(topic)
+    .then(() => console.log('Subscribed to topic:', topic))
+    .catch(e => {
+      console.log(e);
+    });
+};
