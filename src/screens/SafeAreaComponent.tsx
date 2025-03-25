@@ -18,7 +18,6 @@ interface SafeAreaComponentProps {
 const SafeAreaComponent = (props: SafeAreaComponentProps) => {
   SplashScreen.hide();
   const {edges} = props;
-  const {isUserLogout, setIsUserLogout} = React.useContext(AppContext);
 
   const [tokens, setTokens] = React.useState<boolean | undefined>(undefined);
 

@@ -20,6 +20,7 @@ import database from '@react-native-firebase/database';
 import TodoApp from './Todos/Todo';
 import TodoFireStore from './Todos/TodoFireStore';
 import PhoneSignIn from './Todos/PhoneLogin';
+import { subscribeTopic } from '../helper/appUtils';
 
 const Stack = createNativeStackNavigator();
 
@@ -162,7 +163,7 @@ const Navigation = () => {
     if (enabled) {
       try {
         const fcmToken = await messaging().getToken();
-
+        subscribeTopic("AppGrow")
         if (fcmToken) {
           console.log('fcmToken', fcmToken);
 
