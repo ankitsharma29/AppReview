@@ -199,7 +199,7 @@ const Navigation = () => {
           name="Home"
           component={HomeScreen}
           options={{
-            title: 'Get more view & Watch Time',
+            title: 'View & Watch Time Browser',
           }}
         />
         <Stack.Screen name="Profile" component={ProfileScreen} />
