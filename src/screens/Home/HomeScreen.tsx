@@ -189,12 +189,13 @@ const HomeScreen = ({navigation}: any) => {
               </View>
             </>
           ))}
-          {/* Banner Ad show */}
-          <BannerAds />
+
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
         </View>
       </ScrollView>
+      {/* Banner Ad show */}
+      <BannerAds />
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>

@@ -27,24 +27,9 @@ const Stack = createNativeStackNavigator();
 const stackScreenOptions = {
   headerShown: true,
   gestureDirection: 'horizontal',
-  headerMode: 'screen',
   headerTintColor: 'black',
   headerTitleAlign: 'center',
   headerStyle: {backgroundColor: Colors.orange1()},
-  cardStyleInterpolator: ({current, layouts}) => {
-    return {
-      cardStyle: {
-        transform: [
-          {
-            translateX: current.progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [layouts.screen.width, 0],
-            }),
-          },
-        ],
-      },
-    };
-  },
 };
 const Navigation = () => {
   // configure the push notification once, and use it on any screen
@@ -204,11 +189,12 @@ const Navigation = () => {
       <StatusBar
         backgroundColor={Colors.orange1()}
         barStyle={'dark-content'}
-        translucent={false}
+        translucent={true}
       />
       <Stack.Navigator
         initialRouteName="Home"
-        screenOptions={stackScreenOptions}>
+        screenOptions={stackScreenOptions}
+        >
         <Stack.Screen
           name="Home"
           component={HomeScreen}
