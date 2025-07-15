@@ -185,11 +185,11 @@ const Navigation = () => {
           await trackScreenView(currentRouteName, 'AppReview');
         }
       }}>
-      {/* <StatusBar
+      <StatusBar
         backgroundColor={Colors.orange1()}
         barStyle={'dark-content'}
         translucent={true}
-      /> */}
+      />
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
@@ -203,7 +203,6 @@ const Navigation = () => {
           name="Home"
           component={HomeScreen}
           options={{
-            headerShown:false,
             title: 'View & Watch Time Browser',
           }}
         />
