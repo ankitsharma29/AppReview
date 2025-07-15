@@ -88,12 +88,12 @@ const PageWindow = ({navigation, route}: any) => {
         setLoaded(true);
       },
     );
-    const unsubscribeEarned = rewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      reward => {
-        console.log('User earned reward of ', reward);
-      },
-    );
+    // const unsubscribeEarned = rewarded.addAdEventListener(
+    //   RewardedAdEventType.EARNED_REWARD,
+    //   reward => {
+    //     console.log('User earned reward of ', reward);
+    //   },
+    // );
 
     // Start loading the rewarded ad straight away
     rewarded.load();
@@ -101,7 +101,7 @@ const PageWindow = ({navigation, route}: any) => {
     // Unsubscribe from events on unmount
     return () => {
       unsubscribeLoaded();
-      unsubscribeEarned();
+      // unsubscribeEarned();
     };
   }, []);
 
@@ -199,7 +199,7 @@ const PageWindow = ({navigation, route}: any) => {
                       value != '' &&
                       (windowScreen != 0 || Customevalue != 0)
                     ) {
-                      // rewarded.show();
+                      rewarded.show();
                       navigation.navigate('WebViewWindow', {
                         item: data,
                         link: value,

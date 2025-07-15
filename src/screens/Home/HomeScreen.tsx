@@ -70,7 +70,7 @@ const HomeScreen = ({navigation}: any) => {
     try {
       if (item.flag == 'link') {
         openUrl(
-          'https://play.google.com/store/search?q=pub%3AAnkitMishra&c=apps&hl=en_IN&gl=US',
+          'https://play.google.com/store/apps/dev?id=6984237370327765283&hl=en_IN&gl=US',
         );
       } else {
         // setRewardAdsShow(true);

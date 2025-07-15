@@ -20,7 +20,7 @@ import database from '@react-native-firebase/database';
 import TodoApp from './Todos/Todo';
 import TodoFireStore from './Todos/TodoFireStore';
 import PhoneSignIn from './Todos/PhoneLogin';
-import { subscribeTopic } from '../helper/appUtils';
+import {subscribeTopic} from '../helper/appUtils';
 
 const Stack = createNativeStackNavigator();
 
@@ -148,7 +148,7 @@ const Navigation = () => {
     if (enabled) {
       try {
         const fcmToken = await messaging().getToken();
-        subscribeTopic("AppGrow")
+        subscribeTopic('AppGrow');
         if (fcmToken) {
           console.log('fcmToken', fcmToken);
 
@@ -172,7 +172,6 @@ const Navigation = () => {
     firebase.initializeApp(firebaseConfig);
   }
 
-
   return (
     <NavigationContainer
       ref={navigationRef}
@@ -186,19 +185,25 @@ const Navigation = () => {
           await trackScreenView(currentRouteName, 'AppReview');
         }
       }}>
-      <StatusBar
+      {/* <StatusBar
         backgroundColor={Colors.orange1()}
         barStyle={'dark-content'}
         translucent={true}
-      />
+      /> */}
       <Stack.Navigator
         initialRouteName="Home"
-        screenOptions={stackScreenOptions}
-        >
+        screenOptions={{
+          headerShown: true,
+          gestureDirection: 'horizontal',
+          headerTintColor: 'black',
+          headerTitleAlign: 'center',
+          headerStyle: {backgroundColor: Colors.orange1()},
+        }}>
         <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{
+            headerShown:false,
             title: 'View & Watch Time Browser',
           }}
         />
