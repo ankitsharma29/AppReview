@@ -1,5 +1,5 @@
 import {View, Text, StatusBar, Platform} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import HomeScreen from './Home/HomeScreen';
 import ProfileScreen from './Profile/ProfileScreen';
 import {NavigationContainer} from '@react-navigation/native';
@@ -175,7 +175,7 @@ const Navigation = () => {
     }
   };
 
-  const routeNameRef = React.useRef();
+  const routeNameRef = useRef();
 
   // Your Firebase config
   const firebaseConfig = {
