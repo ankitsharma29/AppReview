@@ -188,7 +188,7 @@ const Navigation = () => {
       <StatusBar
         backgroundColor={Colors.orange1()}
         barStyle={'dark-content'}
-        translucent={true}
+        // translucent={true}
       />
       <Stack.Navigator
         initialRouteName="Home"
