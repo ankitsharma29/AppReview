@@ -10,28 +10,6 @@ export const screenHeight = Dimensions.get('window').height;
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
 
-export const fetchDeniedPopUp = () => {
-  Alert.alert(
-    'Permission Denied',
-    'You must have to grant the location permission for accessing the app.',
-    [
-      {
-        text: 'Ok',
-        onPress: () => {
-          console.log('Fetch Pop Up Okay Pressed.');
-          fetchUserLocation();
-        },
-      },
-    ],
-    // {cancelable: false},
-  );
-};
-
-export const fetchLocationFlag = () => {
-  if (fetchUserLocation() != null) return true;
-  else return false;
-};
-
 export const getDeviceModel = () => {
   return DeviceInfo.getModel();
 };
