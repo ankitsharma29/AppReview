@@ -20,6 +20,7 @@ import CommonLoader from '../../components/CommonLoader';
 import Fonts from '../../resource/theme/font';
 import {isIOS} from '../../helper/appUtils';
 import BannerAds from '../../components/Ads/BannerAds';
+import { BannerAdSize } from 'react-native-google-mobile-ads';
 const {scaleFont, scaleSize} = Mixins;
 const WebViewWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
@@ -115,7 +116,7 @@ const WebViewWindow = ({navigation, route}: any) => {
             </View>
           </View>
         )}
-        <BannerAds />
+        <BannerAds BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} adUnitId={'ca-app-pub-4293747280421578/7057408451'}/>
         <View
           style={{
             flexWrap: 'wrap',
@@ -130,7 +131,7 @@ const WebViewWindow = ({navigation, route}: any) => {
               </>
             ))}
         </View>
-        <BannerAds />
+        <BannerAds BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} adUnitId={'ca-app-pub-4293747280421578/8178918435'}/>
       </ScrollView>
     </View>
   );

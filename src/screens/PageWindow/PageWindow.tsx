@@ -17,6 +17,7 @@ import {isIOS, isValidUrl} from '../../helper/appUtils';
 import ErrorComponent from '../../components/ErrorComponent';
 import BannerAds from '../../components/Ads/BannerAds';
 import {
+  BannerAdSize,
   RewardedAd,
   RewardedAdEventType,
   TestIds,
@@ -114,6 +115,7 @@ const PageWindow = ({navigation, route}: any) => {
     <View style={styles.containe}>
       <ScrollView>
         <View style={{margin: scaleSize(10)}}>
+          <BannerAds BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
           <View style={styles.subContainer}>
             <Text style={styles.textStyle}>Link*</Text>
             <TextInput
@@ -285,7 +287,7 @@ const PageWindow = ({navigation, route}: any) => {
               </View>
             </Modal>
           </TouchableWithoutFeedback>
-          <BannerAds />
+          <BannerAds adUnitId={'ca-app-pub-4293747280421578/6961862070'} />
         </View>
       </ScrollView>
     </View>

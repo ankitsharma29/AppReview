@@ -18,6 +18,7 @@ import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
 import RewardAds from '../../components/Ads/RewardAds';
 import {
+  BannerAdSize,
   RewardedAd,
   RewardedAdEventType,
   TestIds,
@@ -195,7 +196,12 @@ const HomeScreen = ({navigation}: any) => {
         </View>
       </ScrollView>
       {/* Banner Ad show */}
-      <BannerAds />
+      <View style={{margin: scaleSize(10)}}>
+        <BannerAds
+          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+          BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        />
+      </View>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>

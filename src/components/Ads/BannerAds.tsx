@@ -8,15 +8,15 @@ import {
   BannerAdSize,
 } from 'react-native-google-mobile-ads';
 
-const BannerAds = () => {
+const BannerAds = ({adUnitId, BaneerSize}: any) => {
   const adUnitId1 = __DEV__
     ? TestIds.BANNER
-    : 'ca-app-pub-4293747280421578/4003804476';
+    : adUnitId ?? 'ca-app-pub-4293747280421578/4003804476';
   return (
     <BannerAd
       unitId={adUnitId1}
-      size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-      // size={"380x250"}
+      // size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+      size={BaneerSize ?? '390x180'}
       onAdFailedToLoad={value => {
         console.log('value', value);
       }}
