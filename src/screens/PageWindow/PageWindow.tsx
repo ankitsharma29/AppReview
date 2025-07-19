@@ -22,6 +22,8 @@ import {
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
+import {interstitial} from '../../components/Ads/adMethods';
+import {useIsFocused} from '@react-navigation/native';
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -42,6 +44,10 @@ const PageWindow = ({navigation, route}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [CustomeMinutes, setCustomeMinutes] = useState<number | any>(0);
   const data = route?.params?.item;
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
       console.log('inside onFocus');
@@ -82,29 +88,29 @@ const PageWindow = ({navigation, route}: any) => {
   // Reward ads
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoaded(true);
-      },
-    );
-    // const unsubscribeEarned = rewarded.addAdEventListener(
-    //   RewardedAdEventType.EARNED_REWARD,
-    //   reward => {
-    //     console.log('User earned reward of ', reward);
-    //   },
-    // );
+  // useEffect(() => {
+  //   const unsubscribeLoaded = rewarded.addAdEventListener(
+  //     RewardedAdEventType.LOADED,
+  //     () => {
+  //       setLoaded(true);
+  //     },
+  //   );
+  //   // const unsubscribeEarned = rewarded.addAdEventListener(
+  //   //   RewardedAdEventType.EARNED_REWARD,
+  //   //   reward => {
+  //   //     console.log('User earned reward of ', reward);
+  //   //   },
+  //   // );
 
-    // Start loading the rewarded ad straight away
-    rewarded.load();
+  //   // Start loading the rewarded ad straight away
+  //   rewarded.load();
 
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribeLoaded();
-      // unsubscribeEarned();
-    };
-  }, []);
+  //   // Unsubscribe from events on unmount
+  //   return () => {
+  //     unsubscribeLoaded();
+  //     // unsubscribeEarned();
+  //   };
+  // }, []);
 
   // No advert ready to show yet
   // if (!loaded) {
@@ -180,7 +186,7 @@ const PageWindow = ({navigation, route}: any) => {
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
               <TouchableOpacity
                 style={styles.buttonClick}
-                onPress={() => {
+                onPress={async () => {
                   try {
                     console.log('CLICK');
                     if (windowScreen == 0 && Customevalue == 0) {
@@ -201,7 +207,8 @@ const PageWindow = ({navigation, route}: any) => {
                       value != '' &&
                       (windowScreen != 0 || Customevalue != 0)
                     ) {
-                      rewarded.show();
+                      // rewarded.show();
+                      await interstitial.show();
                       navigation.navigate('WebViewWindow', {
                         item: data,
                         link: value,
