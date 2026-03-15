@@ -121,7 +121,6 @@ const PageWindow = ({navigation, route}: any) => {
     <View style={styles.containe}>
       <ScrollView>
         <View style={{margin: scaleSize(10)}}>
-          
           <View style={styles.subContainer}>
             <Text style={styles.textStyle}>Link*</Text>
             <TextInput
@@ -146,11 +145,11 @@ const PageWindow = ({navigation, route}: any) => {
                         backgroundColor:
                           WindowSelectFlag == index
                             ? Colors.green9()
-                            : '#0B4960',
+                            : Colors.black(),
                         borderColor:
                           WindowSelectFlag == index
-                            ? Colors.white()
-                            : Colors.black(),
+                            ? Colors.blue()
+                            : Colors.white(),
                       },
                     ]}
                     onPress={() => {
@@ -290,7 +289,6 @@ const PageWindow = ({navigation, route}: any) => {
                       <Text style={styles.canceltext}>Submit</Text>
                     </TouchableOpacity>
                   </View>
-                  
                 </View>
               </View>
             </Modal>
@@ -304,7 +302,7 @@ const PageWindow = ({navigation, route}: any) => {
 const styles = StyleSheet.create({
   containe: {
     flex: 1,
-    backgroundColor: Colors.lightBlue(),
+    backgroundColor: Colors.white(),
   },
   subContainer: {
     backgroundColor: Colors.white(),
@@ -362,7 +360,7 @@ const styles = StyleSheet.create({
   buttonClick: {
     width: '50%',
     padding: scaleSize(10),
-    backgroundColor: Colors.gradientTop(),
+    backgroundColor: Colors.blue1(),
     alignItems: 'center',
     borderRadius: 5,
     marginVertical: scaleSize(15),
@@ -370,7 +368,7 @@ const styles = StyleSheet.create({
   buttonTextStyle: {
     fontSize: 18,
     fontFamily: Fonts.poppinsBold,
-    color: Colors.black(),
+    color: Colors.white(),
     padding: scaleSize(5),
   },
   errorStyle: {

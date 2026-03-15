@@ -186,7 +186,7 @@ const Navigation = () => {
         }
       }}>
       <StatusBar
-        backgroundColor={Colors.orange1()}
+        backgroundColor={Colors.green9()}
         barStyle={'dark-content'}
         // translucent={true}
       />
@@ -197,7 +197,7 @@ const Navigation = () => {
           gestureDirection: 'horizontal',
           headerTintColor: 'black',
           headerTitleAlign: 'center',
-          headerStyle: {backgroundColor: Colors.orange1()},
+          headerStyle: {backgroundColor: Colors.green9()},
         }}>
         <Stack.Screen
           name="Home"

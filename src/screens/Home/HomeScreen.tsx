@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white(),
   },
   subContainer: {
-    backgroundColor: Colors.orange1(),
+    backgroundColor: Colors.green9(),
     padding: scaleSize(30),
     borderRadius: scaleSize(10),
     justifyContent: 'center',
