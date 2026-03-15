@@ -71,5 +71,7 @@ const Colors = {
   gradientHorizontalDark: (alpha = 1) => `rgba(206, 217, 236, ${alpha})`,
   gradientHorizontalLight: (alpha = 1) => `rgba(239, 241, 244, ${alpha})`,
   snackBlue: (alpha = 1) => `rgba(0, 112, 208, ${alpha})`,
+  shadowContainer: (alpha = 1) => `rgba(36, 35, 38, ${alpha})`,
+  borderColor: (alpha = 1) => `rgba(236, 231, 248, ${alpha})`,
 };
 export default Colors;

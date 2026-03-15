@@ -72,3 +72,11 @@ export const subscribeTopic = async (topic: any) => {
       console.log(e);
     });
 };
+
+export const getDeviceId = async () => {
+  try {
+    return await DeviceInfo.getUniqueId();
+  } catch (_err) {
+    return '';
+  }
+};

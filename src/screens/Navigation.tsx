@@ -21,6 +21,7 @@ import TodoApp from './Todos/Todo';
 import TodoFireStore from './Todos/TodoFireStore';
 import PhoneSignIn from './Todos/PhoneLogin';
 import {subscribeTopic} from '../helper/appUtils';
+import GameList from './GameList/GameList';
 
 const Stack = createNativeStackNavigator();
 
@@ -213,6 +214,7 @@ const Navigation = () => {
         <Stack.Screen name="TodoApp" component={TodoApp} />
         <Stack.Screen name="TodoFireStore" component={TodoFireStore} />
         <Stack.Screen name="PhoneSignIn" component={PhoneSignIn} />
+        <Stack.Screen name="GameList" component={GameList} />
       </Stack.Navigator>
     </NavigationContainer>
   );

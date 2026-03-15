@@ -45,6 +45,7 @@ import analytics from '@react-native-firebase/analytics';
 import database from '@react-native-firebase/database';
 import messaging from '@react-native-firebase/messaging';
 import {useIsFocused} from '@react-navigation/native';
+import ImageLabelSectionTitleFlatView from '../../components/ImageLabelSectionTitleFlatView';
 
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -122,6 +123,7 @@ const HomeScreen = ({navigation}: any) => {
     });
   };
   useEffect(() => {
+    fetchGameData();
     fcmTokenset();
   }, []);
 
@@ -187,12 +189,54 @@ const HomeScreen = ({navigation}: any) => {
     };
     fireEvent();
   }, []);
+  // fetch game list data
+  const [GameList, setGameList] = useState<any>([]);
+  const fetchGameData = async () => {
+    try {
+      fetch('https://api.gamezop.com/v3/games', {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer ff1ad137-8cc5-4b41-a277-0fd61a284f74',
+        },
+      })
+        .then(res => res.json())
+        .then(response => {
+          console.log('response', response);
+
+          setGameList({
+            title: 'Game Section',
+            data: response?.data,
+            showViewAll: 'viewall',
+            viewAllUrl: 'viewall',
+          });
+        });
+    } catch (error) {
+      // console.log('error');
+    }
+  };
+  const onItemPress = () => {
+    navigation.navigate('GameList');
+  };
+  const onGameItemPress = async (item: any) => {
+    const userId = await getDeviceId();
+    customWebTab(`${item.url}?sub=${userId}`).then(res => {
+      console.log('res', res);
+    });
+  };
+
   return (
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View style={{margin: scaleSize(10)}}>
           {/* Banner Ad show */}
           <BannerAds BaneerSize="390x170" />
+          {/* Game List */}
+          <ImageLabelSectionTitleFlatView
+            widget={GameList}
+            style={styles.menu}
+            onItemPress={onGameItemPress}
+            onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+          />
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -268,10 +312,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.black(),
     marginVertical: scaleSize(10),
   },
+  menu: {
+    paddingVertical: scaleSize(15),
+    marginVertical: scaleSize(8),
+  },
   textStyle: {
     fontSize: 18,
     fontFamily: Fonts.poppinsRegular,
-    color: Colors.black(),
+    color: Colors.white(),
+    fontWeight: '400',
     textAlign: 'center',
     padding: scaleSize(5),
   },
