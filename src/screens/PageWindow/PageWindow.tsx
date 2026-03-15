@@ -121,7 +121,7 @@ const PageWindow = ({navigation, route}: any) => {
     <View style={styles.containe}>
       <ScrollView>
         <View style={{margin: scaleSize(10)}}>
-          <BannerAds BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} />
+          
           <View style={styles.subContainer}>
             <Text style={styles.textStyle}>Link*</Text>
             <TextInput
@@ -290,6 +290,7 @@ const PageWindow = ({navigation, route}: any) => {
                       <Text style={styles.canceltext}>Submit</Text>
                     </TouchableOpacity>
                   </View>
+                  
                 </View>
               </View>
             </Modal>

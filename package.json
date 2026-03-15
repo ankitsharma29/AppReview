@@ -28,7 +28,7 @@
     "react-native": "0.77.2",
     "react-native-check-version": "^1.1.1",
     "react-native-device-info": "^10.13.1",
-    "react-native-google-mobile-ads": "^15.4.0",
+    "react-native-google-mobile-ads": "^15.7.0",
     "react-native-localize": "^3.0.6",
     "react-native-permissions": "^4.1.4",
     "react-native-push-notification": "^8.1.1",
@@ -43,7 +43,7 @@
     "react-redux": "^9.1.0"
   },
   "devDependencies": {
-     "@babel/core": "^7.25.2",
+    "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
     "@react-native-community/cli": "15.0.1",
@@ -61,10 +61,8 @@
     "jest": "^29.6.3",
     "metro-react-native-babel-preset": "^0.77.0",
     "prettier": "2.8.8",
-    "react-test-renderer": "18.3.1",
     "react-test-renderer": "19.0.0",
     "typescript": "5.0.4"
-
   },
   "engines": {
     "node": ">=18"

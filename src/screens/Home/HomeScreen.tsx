@@ -22,6 +22,7 @@ import {
   RewardedAd,
   RewardedAdEventType,
   TestIds,
+  AppOpenAd,
 } from 'react-native-google-mobile-ads';
 
 const adUnitId = __DEV__
@@ -31,14 +32,23 @@ const adUnitId = __DEV__
 const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ['fashion', 'clothing'],
 });
+const adAppOpenId = __DEV__
+  ? TestIds.APP_OPEN
+  : 'ca-app-pub-4293747280421578/7561318171';
+
+const appOpenAd = AppOpenAd.createForAdRequest(adAppOpenId, {
+  keywords: ['fashion', 'clothing'],
+});
 
 const {scaleFont, scaleSize} = Mixins;
 import analytics from '@react-native-firebase/analytics';
 import database from '@react-native-firebase/database';
 import messaging from '@react-native-firebase/messaging';
+import {useIsFocused} from '@react-navigation/native';
 
 const HomeScreen = ({navigation}: any) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const isFocused = useIsFocused();
   const HomeData = [
     {
       title: 'Get More Views In Multiple Tab',
@@ -69,6 +79,8 @@ const HomeScreen = ({navigation}: any) => {
   const [RewardAdsShow, setRewardAdsShow] = useState<boolean>(false);
   const navigationScreen = (item: any) => {
     try {
+      // Show the app open ad when user brings the app to the foreground.
+      appOpenAd.show();
       if (item.flag == 'link') {
         openUrl(
           'https://play.google.com/store/apps/dev?id=6984237370327765283&hl=en_IN&gl=US',
@@ -87,8 +99,16 @@ const HomeScreen = ({navigation}: any) => {
     }
   };
 
+  // load ads
+  useEffect(() => {
+    // Preload an app open ad
+    appOpenAd.load();
+  }, [isFocused]);
+
   // Check App Update
   useEffect(() => {
+    // Preload an app open ad
+    appOpenAd.load();
     checkAppUpdate();
   }, []);
 
@@ -172,7 +192,7 @@ const HomeScreen = ({navigation}: any) => {
       <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View style={{margin: scaleSize(10)}}>
           {/* Banner Ad show */}
-          <BannerAds />
+          <BannerAds BaneerSize="390x170" />
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -194,14 +214,11 @@ const HomeScreen = ({navigation}: any) => {
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
         </View>
+        {/* Banner Ad show */}
+        <View style={{margin: scaleSize(10)}}>
+          <BannerAds adUnitId={'ca-app-pub-4293747280421578/5005960189'} />
+        </View>
       </ScrollView>
-      {/* Banner Ad show */}
-      <View style={{margin: scaleSize(10)}}>
-        <BannerAds
-          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
-          BaneerSize={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        />
-      </View>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
