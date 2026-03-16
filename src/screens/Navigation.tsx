@@ -189,7 +189,7 @@ const Navigation = () => {
       <StatusBar
         backgroundColor={Colors.green9()}
         barStyle={'dark-content'}
-        // translucent={true}
+        translucent={true}
       />
       <Stack.Navigator
         initialRouteName="Home"
@@ -199,6 +199,7 @@ const Navigation = () => {
           headerTintColor: 'black',
           headerTitleAlign: 'center',
           headerStyle: {backgroundColor: Colors.green9()},
+          
         }}>
         <Stack.Screen
           name="Home"
