@@ -110,7 +110,6 @@ const HomeScreen = ({ navigation }: any) => {
   // Check App Update
   useEffect(() => {
     // Preload an app open ad
-    appOpenAd.load();
     checkAppUpdate();
   }, []);
 
@@ -220,8 +219,8 @@ const HomeScreen = ({ navigation }: any) => {
   };
   const onGameItemPress = async (item: any) => {
     const userId = await getDeviceId();
-    console.log(`${item.url}?sub=${userId}`);
-    
+    // console.log(`${item.url}?sub=${userId}`);
+   appOpenAd.show();
     customWebTab(`${item.url}?sub=${userId}`).then(res => {
       console.log('res', res);
     });
