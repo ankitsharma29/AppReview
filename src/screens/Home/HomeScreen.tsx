@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {AppImages, BonusDisable} from '../../assets/constant';
+import React, { useEffect, useState } from 'react';
+import { AppImages, BonusDisable } from '../../assets/constant';
 import Fonts from '../../resource/theme/font';
 import Colors from '../../resource/theme/color';
 import Mixins from '../../resource/mixins/appStyle';
-import {isIOS, openUrl, setCrashlaticsLog} from '../../helper/appUtils';
-import {checkVersion} from 'react-native-check-version';
+import { getDeviceId, isIOS, openUrl, setCrashlaticsLog } from '../../helper/appUtils';
+import { checkVersion } from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
 import RewardAds from '../../components/Ads/RewardAds';
@@ -40,14 +40,15 @@ const appOpenAd = AppOpenAd.createForAdRequest(adAppOpenId, {
   keywords: ['fashion', 'clothing'],
 });
 
-const {scaleFont, scaleSize} = Mixins;
+const { scaleFont, scaleSize } = Mixins;
 import analytics from '@react-native-firebase/analytics';
 import database from '@react-native-firebase/database';
 import messaging from '@react-native-firebase/messaging';
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import ImageLabelSectionTitleFlatView from '../../components/ImageLabelSectionTitleFlatView';
+import { customWebTab } from '../../components/customWebTab';
 
-const HomeScreen = ({navigation}: any) => {
+const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const isFocused = useIsFocused();
   const HomeData = [
@@ -89,12 +90,12 @@ const HomeScreen = ({navigation}: any) => {
       } else {
         // setRewardAdsShow(true);
         // rewarded.show();
-        navigation.navigate('PageWindow', {item: item});
+        navigation.navigate('PageWindow', { item: item });
       }
       console.log('click');
     } catch (error) {
       // console.log("error",error.stack);
-      navigation.navigate('PageWindow', {item: item});
+      navigation.navigate('PageWindow', { item: item });
       // console.log("error",error.message);
       setCrashlaticsLog(error);
     }
@@ -190,7 +191,7 @@ const HomeScreen = ({navigation}: any) => {
     fireEvent();
   }, []);
   // fetch game list data
-  const [GameList, setGameList] = useState<any>([]);
+  const [GameList, setGameList] = useState<any>({});
   const fetchGameData = async () => {
     try {
       fetch('https://api.gamezop.com/v3/games', {
@@ -219,6 +220,8 @@ const HomeScreen = ({navigation}: any) => {
   };
   const onGameItemPress = async (item: any) => {
     const userId = await getDeviceId();
+    console.log(`${item.url}?sub=${userId}`);
+    
     customWebTab(`${item.url}?sub=${userId}`).then(res => {
       console.log('res', res);
     });
@@ -226,17 +229,19 @@ const HomeScreen = ({navigation}: any) => {
 
   return (
     <View style={styles.containe}>
-      <ScrollView contentContainerStyle={{flexGrow: 1}}>
-        <View style={{margin: scaleSize(10)}}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={{ margin: scaleSize(10) }}>
           {/* Banner Ad show */}
           <BannerAds BaneerSize="390x170" />
           {/* Game List */}
-          <ImageLabelSectionTitleFlatView
-            widget={GameList}
-            style={styles.menu}
-            onItemPress={onGameItemPress}
-            onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
-          />
+          {GameList?.data?.length > 0 && (
+            <ImageLabelSectionTitleFlatView
+              widget={GameList}
+              style={styles.menu}
+              onItemPress={onGameItemPress}
+              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+            />
+          )}
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -248,7 +253,8 @@ const HomeScreen = ({navigation}: any) => {
                   style={styles.button}
                   onPress={() => {
                     navigationScreen(item);
-                  }}>
+                  }}
+                >
                   <Text style={styles.textStyle}>View{' >'} </Text>
                 </TouchableOpacity>
               </View>
@@ -259,7 +265,7 @@ const HomeScreen = ({navigation}: any) => {
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
         </View>
         {/* Banner Ad show */}
-        <View style={{margin: scaleSize(10)}}>
+        <View style={{ margin: scaleSize(10) }}>
           <BannerAds adUnitId={'ca-app-pub-4293747280421578/5005960189'} />
         </View>
       </ScrollView>
@@ -286,7 +292,8 @@ const HomeScreen = ({navigation}: any) => {
                     );
                   }
                 }}
-                style={styles.buttonUpdate}>
+                style={styles.buttonUpdate}
+              >
                 <Text style={styles.Updatetext}>Update Now</Text>
               </TouchableOpacity>
             </View>
