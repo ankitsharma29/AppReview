@@ -6,13 +6,21 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Linking,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { AppImages, BonusDisable } from '../../assets/constant';
 import Fonts from '../../resource/theme/font';
 import Colors from '../../resource/theme/color';
 import Mixins from '../../resource/mixins/appStyle';
-import { getDeviceId, isIOS, openUrl, setCrashlaticsLog } from '../../helper/appUtils';
+import {
+  getDeviceId,
+  isIOS,
+  isValidUrl,
+  openUrl,
+  screenWidth,
+  setCrashlaticsLog,
+} from '../../helper/appUtils';
 import { checkVersion } from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
@@ -47,6 +55,7 @@ import messaging from '@react-native-firebase/messaging';
 import { useIsFocused } from '@react-navigation/native';
 import ImageLabelSectionTitleFlatView from '../../components/ImageLabelSectionTitleFlatView';
 import { customWebTab } from '../../components/customWebTab';
+import FastImage from 'react-native-fast-image';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -220,7 +229,7 @@ const HomeScreen = ({ navigation }: any) => {
   const onGameItemPress = async (item: any) => {
     const userId = await getDeviceId();
     // console.log(`${item.url}?sub=${userId}`);
-   appOpenAd.show();
+    appOpenAd.show();
     customWebTab(`${item.url}?sub=${userId}`).then(res => {
       console.log('res', res);
     });
@@ -232,15 +241,18 @@ const HomeScreen = ({ navigation }: any) => {
         <View style={{ margin: scaleSize(10) }}>
           {/* Banner Ad show */}
           <BannerAds BaneerSize="390x170" />
-          {/* Game List */}
-          {GameList?.data?.length > 0 && (
-            <ImageLabelSectionTitleFlatView
-              widget={GameList}
-              style={styles.menu}
-              onItemPress={onGameItemPress}
-              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+          <TouchableOpacity
+            onPress={() => {
+              Linking.openURL('https://cracknaukri.com/');
+            }}
+            style={{marginVertical:scaleSize(10)}}
+          >
+            <FastImage
+              source={AppImages.CrackNaukri}
+              style={styles.otherCards}
+              resizeMode="cover"
             />
-          )}
+          </TouchableOpacity>
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -262,6 +274,15 @@ const HomeScreen = ({ navigation }: any) => {
 
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
+        {/* Game List */}
+        {GameList?.data?.length > 0 && (
+          <ImageLabelSectionTitleFlatView
+            widget={GameList}
+            style={styles.menu}
+            onItemPress={onGameItemPress}
+            onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+          />
+        )}
         </View>
         {/* Banner Ad show */}
         <View style={{ margin: scaleSize(10) }}>
@@ -317,6 +338,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.black(),
     marginVertical: scaleSize(10),
+  },
+  otherCards: {
+    height: screenWidth * (0.85 * 0.45),
+    width: screenWidth - 22,
+    borderRadius: scaleSize(12),
   },
   menu: {
     paddingVertical: scaleSize(15),

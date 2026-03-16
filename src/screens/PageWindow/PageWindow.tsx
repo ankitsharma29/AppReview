@@ -8,12 +8,13 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Modal,
+  Linking,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Colors from '../../resource/theme/color';
 import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
-import {isIOS, isValidUrl} from '../../helper/appUtils';
+import { isIOS, isValidUrl, screenWidth } from '../../helper/appUtils';
 import ErrorComponent from '../../components/ErrorComponent';
 import BannerAds from '../../components/Ads/BannerAds';
 import {
@@ -22,8 +23,10 @@ import {
   RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
-import {interstitial} from '../../components/Ads/adMethods';
-import {useIsFocused} from '@react-navigation/native';
+import { interstitial } from '../../components/Ads/adMethods';
+import { useIsFocused } from '@react-navigation/native';
+import FastImage from 'react-native-fast-image';
+import { AppImages } from '../../assets/constant';
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -33,8 +36,8 @@ const rewarded = RewardedAd.createForAdRequest(adUnitId, {
   keywords: ['fashion', 'clothing'],
 });
 
-const {scaleFont, scaleSize} = Mixins;
-const PageWindow = ({navigation, route}: any) => {
+const { scaleFont, scaleSize } = Mixins;
+const PageWindow = ({ navigation, route }: any) => {
   const inputRef = useRef(null);
   const [value, setValue] = useState<any>('');
   const [Customevalue, setCustomevalue] = useState<any>(0);
@@ -120,7 +123,18 @@ const PageWindow = ({navigation, route}: any) => {
   return (
     <View style={styles.containe}>
       <ScrollView>
-        <View style={{margin: scaleSize(10)}}>
+        <View style={{ margin: scaleSize(10) }}>
+          <TouchableOpacity
+            onPress={() => {
+              Linking.openURL('https://cracknaukri.com/');
+            }}
+          >
+            <FastImage
+              source={AppImages.CrackNaukri}
+              style={styles.otherCards}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
           <View style={styles.subContainer}>
             <Text style={styles.textStyle}>Link*</Text>
             <TextInput
@@ -156,7 +170,8 @@ const PageWindow = ({navigation, route}: any) => {
                       setErrorMessageRes('');
                       setWindowScreen(item.number);
                       setWindowSelectFlag(index);
-                    }}>
+                    }}
+                  >
                     <Text style={styles.buutonTextStyle}>{item.value}</Text>
                   </TouchableOpacity>
                 </>
@@ -165,7 +180,7 @@ const PageWindow = ({navigation, route}: any) => {
 
             <Text style={styles.textor}>or</Text>
 
-            <View style={{marginVertical: scaleSize(10)}}>
+            <View style={{ marginVertical: scaleSize(10) }}>
               <TextInput
                 value={Customevalue}
                 placeholder="enter custome windows value"
@@ -182,7 +197,7 @@ const PageWindow = ({navigation, route}: any) => {
                 style={styles.input}
               />
             </View>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <TouchableOpacity
                 style={styles.buttonClick}
                 onPress={async () => {
@@ -223,7 +238,8 @@ const PageWindow = ({navigation, route}: any) => {
                       Customevalue: Customevalue,
                     });
                   }
-                }}>
+                }}
+              >
                 <Text style={styles.buttonTextStyle}>Click</Text>
               </TouchableOpacity>
             </View>
@@ -237,11 +253,13 @@ const PageWindow = ({navigation, route}: any) => {
           <TouchableWithoutFeedback
             onPress={() => {
               setModalVisible(!modalVisible);
-            }}>
+            }}
+          >
             <Modal
               animationType="slide"
               transparent={true}
-              visible={modalVisible}>
+              visible={modalVisible}
+            >
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                   <Text style={styles.modeltext}>
@@ -252,8 +270,8 @@ const PageWindow = ({navigation, route}: any) => {
                     If your video is 5 minutes then you give 60x5=300 so you
                     want to play video you have to write
                   </Text>
-                  <View style={{marginVertical: scaleSize(10)}}>
-                    <Text style={[styles.modeltext, {textAlign: 'left'}]}>
+                  <View style={{ marginVertical: scaleSize(10) }}>
+                    <Text style={[styles.modeltext, { textAlign: 'left' }]}>
                       Only Seconds*
                     </Text>
                     <TextInput
@@ -285,7 +303,8 @@ const PageWindow = ({navigation, route}: any) => {
                           });
                         }
                       }}
-                      style={styles.buttoncancel}>
+                      style={styles.buttoncancel}
+                    >
                       <Text style={styles.canceltext}>Submit</Text>
                     </TouchableOpacity>
                   </View>
@@ -312,6 +331,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.gray3(),
     marginVertical: scaleSize(10),
+  },
+  otherCards: {
+    height: screenWidth * (0.85 * 0.45),
+    width: screenWidth - 22,
+    borderRadius: scaleSize(12),
   },
   textStyle: {
     fontSize: scaleSize(18),
