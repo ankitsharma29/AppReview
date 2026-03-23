@@ -17,6 +17,7 @@ import Fonts from '../../resource/theme/font';
 import { isIOS, isValidUrl, screenWidth } from '../../helper/appUtils';
 import ErrorComponent from '../../components/ErrorComponent';
 import BannerAds from '../../components/Ads/BannerAds';
+import DownLoadVideo from '../../components/DownLoadVideo';
 import {
   BannerAdSize,
   RewardedAd,
@@ -124,6 +125,7 @@ const PageWindow = ({ navigation, route }: any) => {
     <View style={styles.containe}>
       <ScrollView>
         <View style={{ margin: scaleSize(10) }}>
+          <DownLoadVideo />
           <TouchableOpacity
             onPress={() => {
               Linking.openURL('https://cracknaukri.com/');

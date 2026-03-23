@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,9 @@ import {
   Linking,
 } from 'react-native';
 import { AppImages } from '../assets/constant';
-const VideoCard = ({ title, type, videoUrl }) => {
-  const downloadVideo = async () => {
-    try {
-      Linking.openURL(videoUrl)
-    } catch (error) {
-      Alert.alert('Error', 'Failed to download video');
-    }
-  };
-
+import { interstitial } from './Ads/adMethods';
+import { useIsFocused } from '@react-navigation/native';
+const VideoCard = ({ title, type, downloadVideo }) => {
   const getIcon = () => {
     if (type === 'youtube') {
       return AppImages.youtubelogo;
@@ -34,10 +28,7 @@ const VideoCard = ({ title, type, videoUrl }) => {
       </View>
 
       <TouchableOpacity style={styles.btn} onPress={downloadVideo}>
-        <Image
-          source={AppImages.download}
-          style={styles.downloadIcon}
-        />
+        <Image source={AppImages.download} style={styles.downloadIcon} />
         <Text style={styles.btnText}>Download</Text>
       </TouchableOpacity>
     </View>
@@ -45,20 +36,41 @@ const VideoCard = ({ title, type, videoUrl }) => {
 };
 
 export default function DonwloadVideo() {
+  const [loadShow, setLoadShow] = useState(false);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused, loadShow]);
+  const downloadVideo = async videoUrl => {
+    try {
+      setLoadShow(false);
+      await interstitial.show();
+      setLoadShow(true);
+      Linking.openURL(videoUrl);
+      await trackScreenView('DownLoadVideos', 'AppReview');
+    } catch (error) {
+      console.log('error', error);
+      Linking.openURL(videoUrl);
+      await trackScreenView('DownLoadVideos', 'AppReview');
+      // Alert.alert('Error', 'Failed to download video');
+    }
+  };
   return (
     <View style={styles.container}>
       {/* YouTube Card */}
       <VideoCard
         title="YouTube Video"
         type="youtube"
-        videoUrl="https://turboscribe.ai/downloader/youtube/video"
+        downloadVideo={() =>
+          downloadVideo('https://turboscribe.ai/downloader/youtube/video')
+        }
       />
 
       {/* Instagram Card */}
       <VideoCard
         title="Instagram Reel"
         type="instagram"
-        videoUrl="https://fastdl.app/en2"
+        downloadVideo={() => downloadVideo('https://fastdl.app/en2')}
       />
     </View>
   );
@@ -68,9 +80,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    justifyContent:'space-between',
-    flexDirection:'row',
-    flexWrap:'wrap'
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   card: {
     backgroundColor: '#fff',
@@ -78,7 +90,6 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     elevation: 5,
-    
   },
   header: {
     flexDirection: 'row',
