@@ -1,11 +1,12 @@
 import { Linking } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Colors from '../resource/theme/color';
+import { trackScreenView } from '../helper/ScreenTracking';
 
 export const customWebTab = async (webUrl?: string) => {
   try {
     const url = 'https://cracknaukri.in';
-
+    await trackScreenView('GameClick', 'AppReview');
     if (await InAppBrowser.isAvailable()) {
       const result = await InAppBrowser.open(webUrl, {
         // iOS Properties

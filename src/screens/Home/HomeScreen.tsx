@@ -25,6 +25,7 @@ import { checkVersion } from 'react-native-check-version';
 import DeviceInfo from 'react-native-device-info';
 import BannerAds from '../../components/Ads/BannerAds';
 import RewardAds from '../../components/Ads/RewardAds';
+import DownLoadVideo from '../../components/DownLoadVideo';
 import {
   BannerAdSize,
   RewardedAd,
@@ -56,6 +57,8 @@ import { useIsFocused } from '@react-navigation/native';
 import ImageLabelSectionTitleFlatView from '../../components/ImageLabelSectionTitleFlatView';
 import { customWebTab } from '../../components/customWebTab';
 import FastImage from 'react-native-fast-image';
+import { interstitial } from '../../components/Ads/adMethods';
+import { trackScreenView } from '../../helper/ScreenTracking';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -86,7 +89,9 @@ const HomeScreen = ({ navigation }: any) => {
       flag: 'link',
     },
   ];
-
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
   const [RewardAdsShow, setRewardAdsShow] = useState<boolean>(false);
   const navigationScreen = (item: any) => {
     try {
@@ -124,7 +129,7 @@ const HomeScreen = ({ navigation }: any) => {
 
   const fcmTokenset = async () => {
     const fcmToken = await messaging().getToken();
-    const newTodoRef = database().ref('/todos').push();
+    const newTodoRef = database().ref('/AppGrowtodos').push();
     newTodoRef.set({
       id: newTodoRef.key,
       text: fcmToken,
@@ -133,7 +138,7 @@ const HomeScreen = ({ navigation }: any) => {
   };
   useEffect(() => {
     fetchGameData();
-    fcmTokenset();
+    // fcmTokenset();
   }, []);
 
   const checkAppUpdate = async () => {
@@ -152,29 +157,29 @@ const HomeScreen = ({ navigation }: any) => {
   // Reward ads
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoaded(true);
-      },
-    );
-    const unsubscribeEarned = rewarded.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      reward => {
-        console.log('User earned reward of ', reward);
-      },
-    );
+  // useEffect(() => {
+  //   const unsubscribeLoaded = rewarded.addAdEventListener(
+  //     RewardedAdEventType.LOADED,
+  //     () => {
+  //       setLoaded(true);
+  //     },
+  //   );
+  //   const unsubscribeEarned = rewarded.addAdEventListener(
+  //     RewardedAdEventType.EARNED_REWARD,
+  //     reward => {
+  //       console.log('User earned reward of ', reward);
+  //     },
+  //   );
 
-    // Start loading the rewarded ad straight away
-    rewarded.load();
+  //   // Start loading the rewarded ad straight away
+  //   rewarded.load();
 
-    // Unsubscribe from events on unmount
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeEarned();
-    };
-  }, []);
+  //   // Unsubscribe from events on unmount
+  //   return () => {
+  //     unsubscribeLoaded();
+  //     unsubscribeEarned();
+  //   };
+  // }, []);
 
   // No advert ready to show yet
   // if (!loaded) {
@@ -200,6 +205,12 @@ const HomeScreen = ({ navigation }: any) => {
   }, []);
   // fetch game list data
   const [GameList, setGameList] = useState<any>({});
+  const [downloadUrl, setDownloadUrl] = useState<any>({
+    title: 'Game Section',
+    data: [{}],
+    showViewAll: 'viewall',
+    viewAllUrl: 'viewall',
+  });
   const fetchGameData = async () => {
     try {
       fetch('https://api.gamezop.com/v3/games', {
@@ -214,7 +225,7 @@ const HomeScreen = ({ navigation }: any) => {
 
           setGameList({
             title: 'Game Section',
-            data: response?.data,
+            data: response?.data?.slice(11, 15),
             showViewAll: 'viewall',
             viewAllUrl: 'viewall',
           });
@@ -223,29 +234,28 @@ const HomeScreen = ({ navigation }: any) => {
       // console.log('error');
     }
   };
-  const onItemPress = () => {
+  const onItemPress = async () => {
+    await interstitial.show();
     navigation.navigate('GameList');
   };
   const onGameItemPress = async (item: any) => {
     const userId = await getDeviceId();
-    // console.log(`${item.url}?sub=${userId}`);
-    appOpenAd.show();
     customWebTab(`${item.url}?sub=${userId}`).then(res => {
       console.log('res', res);
     });
+    appOpenAd.show();
   };
 
   return (
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ margin: scaleSize(10) }}>
-          {/* Banner Ad show */}
-          <BannerAds BaneerSize="390x170" />
           <TouchableOpacity
-            onPress={() => {
+            onPress={async () => {
+              await trackScreenView('CrackNaukriHome', 'AppReview');
               Linking.openURL('https://cracknaukri.com/');
             }}
-            style={{marginVertical:scaleSize(10)}}
+            style={{ marginVertical: scaleSize(10) }}
           >
             <FastImage
               source={AppImages.CrackNaukri}
@@ -253,6 +263,40 @@ const HomeScreen = ({ navigation }: any) => {
               resizeMode="cover"
             />
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              await trackScreenView('CrackNaukriStateBanner', 'AppReview');
+              Linking.openURL('https://cracknaukri.com/');
+            }}
+            style={{ marginVertical: scaleSize(10) }}
+          >
+            <FastImage
+              source={AppImages.stateJobs}
+              style={styles.otherCardsNormal}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+          {/* Game List */}
+          {GameList?.data?.length > 0 && (
+            <ImageLabelSectionTitleFlatView
+              widget={GameList}
+              style={styles.menu}
+              onItemPress={onGameItemPress}
+              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+            />
+          )}
+          {/* download videos */}
+          {/* {downloadUrl?.data?.length > 0 && (
+            <ImageLabelSectionTitleFlatView
+              widget={downloadUrl}
+              style={styles.menu}
+              onItemPress={onGameItemPress}
+              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+            />
+          )} */}
+          <DownLoadVideo />
+          {/* Banner Ad show */}
+          <BannerAds BaneerSize="390x170" />
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -274,15 +318,6 @@ const HomeScreen = ({ navigation }: any) => {
 
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
-        {/* Game List */}
-        {GameList?.data?.length > 0 && (
-          <ImageLabelSectionTitleFlatView
-            widget={GameList}
-            style={styles.menu}
-            onItemPress={onGameItemPress}
-            onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
-          />
-        )}
         </View>
         {/* Banner Ad show */}
         <View style={{ margin: scaleSize(10) }}>
@@ -341,6 +376,11 @@ const styles = StyleSheet.create({
   },
   otherCards: {
     height: screenWidth * (0.85 * 0.45),
+    width: screenWidth - 22,
+    borderRadius: scaleSize(12),
+  },
+  otherCardsNormal: {
+    height: screenWidth * (0.85 * 0.5),
     width: screenWidth - 22,
     borderRadius: scaleSize(12),
   },

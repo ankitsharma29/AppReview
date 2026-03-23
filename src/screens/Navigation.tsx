@@ -148,13 +148,13 @@ const Navigation = () => {
 
     if (enabled) {
       try {
-        const fcmToken = await messaging().getToken();
+        // const fcmToken = await messaging().getToken();
         subscribeTopic('AppGrow');
-        if (fcmToken) {
-          console.log('fcmToken', fcmToken);
+        // if (fcmToken) {
+        //   console.log('fcmToken', fcmToken);
 
-          // Alert.alert(fcmToken);
-        }
+        //   // Alert.alert(fcmToken);
+        // }
       } catch (err) {
         // Alert.alert('Error occured while getting token.');
       }

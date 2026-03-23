@@ -4,6 +4,11 @@ export { default as BonusEnable } from './svgs/bonus_enable.svg';
 export const AppImages = {
   MyName: require('./images/ankit.jpg'),
   CrackNaukri: require('./images/CrackNaukri.png'),
+  stateJobs: require('./images/stateJobs.png'),
+  stateNaukri: require('./images/stateNaukri.png'),
+  youtubelogo: require('./images/youtubelogo.png'),
+  instagram: require('./images/instagram.png'),
+  download: require('./images/download.png'),
 };
 
 export const LottieFiles = {

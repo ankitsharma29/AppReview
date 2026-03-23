@@ -96,7 +96,7 @@ const ImageLabelSectionTitleFlatView = ({
           {...(isScrollable ? {} : {numColumns: 4})}
           showsHorizontalScrollIndicator={true}
           automaticallyAdjustsScrollIndicatorInsets={true}
-          data={widget?.data?.slice(50,58) ?? []}
+          data={widget?.data ?? []}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
         />

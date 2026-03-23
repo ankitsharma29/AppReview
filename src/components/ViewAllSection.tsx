@@ -19,7 +19,7 @@ interface ViewAllSectionProps {
   onViewAllPress: () => void;
 }
 
-const {scaleSize, scaleFont} = Mixins;
+const { scaleSize, scaleFont } = Mixins;
 
 const ViewAllSection = ({
   title,
@@ -29,8 +29,8 @@ const ViewAllSection = ({
   onViewAllPress,
 }: ViewAllSectionProps) => {
   const styles = getStyles();
-  console.log("title",title);
-  
+  console.log('title', title);
+
   return (
     <View style={[styles.container, style]}>
       <Text style={[styles.title, titleStyle]}>{title}</Text>
@@ -38,8 +38,15 @@ const ViewAllSection = ({
         <>
           <TouchableOpacity
             onPress={onViewAllPress}
-            style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text style={styles.viewAllTxt}>View All</Text>
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: Colors.softBrown(),
+              padding: scaleSize(5),
+              borderRadius: scaleSize(8),
+            }}
+          >
+            <Text style={styles.viewAllTxt}>View More</Text>
             {/* <RightArrowNew height={14} width={14} /> */}
           </TouchableOpacity>
         </>
@@ -77,9 +84,9 @@ const getStyles = () =>
       elevation: 5,
     },
     viewAllTxt: {
-      fontFamily: Fonts.Bold,
+      fontFamily: Fonts.poppinsBold,
       fontSize: scaleFont(16),
-      color: Colors.black(),
+      color: Colors.white(),
       textAlign: 'center',
       marginRight: scaleSize(5),
     },
