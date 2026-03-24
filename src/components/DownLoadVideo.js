@@ -47,19 +47,25 @@ export default function DonwloadVideo() {
     try {
       setLoadShow(false);
       await trackScreenView('DownLoadVideos', 'AppReview');
-      customWebTab(videoUrl).then(async res => {
-        await interstitial.show();
-        setLoadShow(true);
-        console.log('res', res);
-      });
+      // customWebTab(videoUrl).then(async res => {
+      //   await interstitial.show();
+      //   setLoadShow(true);
+      //   console.log('res', res);
+      // });
+      Linking.openURL(videoUrl);
+      await interstitial.show();
+      setLoadShow(true);
     } catch (error) {
       console.log('error', error);
       await trackScreenView('DownLoadVideos', 'AppReview');
-      customWebTab(videoUrl).then(async res => {
-        await interstitial.show();
-        setLoadShow(true);
-        console.log('res', res);
-      });
+      // customWebTab(videoUrl).then(async res => {
+      // await interstitial.show();
+      // setLoadShow(true);
+      //   console.log('res', res);
+      // });
+      Linking.openURL(videoUrl);
+      await interstitial.show();
+      setLoadShow(true);
       await trackScreenView('DownLoadVideos', 'AppReview');
     }
   };
