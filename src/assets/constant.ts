@@ -9,6 +9,7 @@ export const AppImages = {
   youtubelogo: require('./images/youtubelogo.png'),
   instagram: require('./images/instagram.png'),
   download: require('./images/download.png'),
+  freeBrandBanner: require('./images/freeBrandBanner.png'),
 };
 
 export const LottieFiles = {

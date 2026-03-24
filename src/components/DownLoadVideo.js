@@ -11,6 +11,8 @@ import {
 import { AppImages } from '../assets/constant';
 import { interstitial } from './Ads/adMethods';
 import { useIsFocused } from '@react-navigation/native';
+import { customWebTab } from './customWebTab';
+import { trackScreenView } from '../helper/ScreenTracking';
 const VideoCard = ({ title, type, downloadVideo }) => {
   const getIcon = () => {
     if (type === 'youtube') {
@@ -36,7 +38,7 @@ const VideoCard = ({ title, type, downloadVideo }) => {
 };
 
 export default function DonwloadVideo() {
-  const [loadShow, setLoadShow] = useState(false);
+  const [loadShow, setLoadShow] = useState(true);
   const isFocused = useIsFocused();
   useEffect(() => {
     interstitial.load();
@@ -44,15 +46,21 @@ export default function DonwloadVideo() {
   const downloadVideo = async videoUrl => {
     try {
       setLoadShow(false);
-      await interstitial.show();
-      setLoadShow(true);
-      Linking.openURL(videoUrl);
       await trackScreenView('DownLoadVideos', 'AppReview');
+      customWebTab(videoUrl).then(async res => {
+        await interstitial.show();
+        setLoadShow(true);
+        console.log('res', res);
+      });
     } catch (error) {
       console.log('error', error);
-      Linking.openURL(videoUrl);
       await trackScreenView('DownLoadVideos', 'AppReview');
-      // Alert.alert('Error', 'Failed to download video');
+      customWebTab(videoUrl).then(async res => {
+        await interstitial.show();
+        setLoadShow(true);
+        console.log('res', res);
+      });
+      await trackScreenView('DownLoadVideos', 'AppReview');
     }
   };
   return (

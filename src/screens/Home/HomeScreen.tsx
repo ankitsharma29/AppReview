@@ -59,6 +59,7 @@ import { customWebTab } from '../../components/customWebTab';
 import FastImage from 'react-native-fast-image';
 import { interstitial } from '../../components/Ads/adMethods';
 import { trackScreenView } from '../../helper/ScreenTracking';
+import PromoBanner from '../PromoBanner/PromoBanner';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -250,7 +251,7 @@ const HomeScreen = ({ navigation }: any) => {
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ margin: scaleSize(10) }}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={async () => {
               await trackScreenView('CrackNaukriHome', 'AppReview');
               Linking.openURL('https://cracknaukri.com/');
@@ -262,13 +263,17 @@ const HomeScreen = ({ navigation }: any) => {
               style={styles.otherCards}
               resizeMode="cover"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+          <PromoBanner />
           <TouchableOpacity
             onPress={async () => {
               await trackScreenView('CrackNaukriStateBanner', 'AppReview');
-              Linking.openURL('https://cracknaukri.com/');
+
+              customWebTab('https://cracknaukri.com/').then(res => {
+                console.log('res', res);
+              });
             }}
-            style={{ marginVertical: scaleSize(10) }}
+            style={{ marginBottom: scaleSize(10) }}
           >
             <FastImage
               source={AppImages.stateJobs}
