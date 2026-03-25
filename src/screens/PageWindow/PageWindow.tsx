@@ -52,6 +52,14 @@ const PageWindow = ({ navigation, route }: any) => {
   useEffect(() => {
     interstitial.load();
   }, [isFocused]);
+
+  useEffect(() => {
+    if (isFocused == false) {
+      (async () => {
+        await interstitial.show();
+      })();
+    }
+  }, [isFocused]);
   const onFocusHandler = () => {
     if (Platform.OS === 'android') {
       console.log('inside onFocus');
@@ -224,7 +232,6 @@ const PageWindow = ({ navigation, route }: any) => {
                       (windowScreen != 0 || Customevalue != 0)
                     ) {
                       // rewarded.show();
-                      await interstitial.show();
                       navigation.navigate('WebViewWindow', {
                         item: data,
                         link: value,
