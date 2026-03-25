@@ -299,7 +299,7 @@ const HomeScreen = ({ navigation }: any) => {
               onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
             />
           )} */}
-          <DownLoadVideo />
+          {/* <DownLoadVideo /> */}
           {/* Banner Ad show */}
           <BannerAds BaneerSize="390x170" />
           {HomeData.map((item: any, index: number) => (

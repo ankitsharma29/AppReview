@@ -125,7 +125,7 @@ const PageWindow = ({ navigation, route }: any) => {
     <View style={styles.containe}>
       <ScrollView>
         <View style={{ margin: scaleSize(10) }}>
-          <DownLoadVideo />
+          {/* <DownLoadVideo /> */}
           <TouchableOpacity
             onPress={() => {
               Linking.openURL('https://cracknaukri.com/');
