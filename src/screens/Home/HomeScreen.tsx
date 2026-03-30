@@ -60,6 +60,7 @@ import FastImage from 'react-native-fast-image';
 import { interstitial } from '../../components/Ads/adMethods';
 import { trackScreenView } from '../../helper/ScreenTracking';
 import PromoBanner from '../PromoBanner/PromoBanner';
+import ViewAllSection from '../../components/ViewAllSection';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -264,7 +265,7 @@ const HomeScreen = ({ navigation }: any) => {
               resizeMode="cover"
             />
           </TouchableOpacity> */}
-          <PromoBanner />
+          {/* <PromoBanner /> */}
           <TouchableOpacity
             onPress={async () => {
               await trackScreenView('CrackNaukriStateBanner', 'AppReview');
@@ -281,6 +282,14 @@ const HomeScreen = ({ navigation }: any) => {
               resizeMode="cover"
             />
           </TouchableOpacity>
+          <ViewAllSection
+            title={'Brand Permotion'}
+            showViewAll={'showViewAll'}
+            onViewAllPress={async () => {
+              await interstitial.show();
+              navigation.navigate('AdsList');
+            }}
+          />
           {/* Game List */}
           {GameList?.data?.length > 0 && (
             <ImageLabelSectionTitleFlatView
