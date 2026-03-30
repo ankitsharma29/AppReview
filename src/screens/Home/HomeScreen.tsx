@@ -210,7 +210,7 @@ const HomeScreen = ({ navigation }: any) => {
   // fetch game list data
   const [GameList, setGameList] = useState<any>({});
   const [AdsListData, setAdsListData] = useState<any>({
-    title: 'Brand Permotion',
+    title: 'Brand Promotion',
     data: [
       {
         name: 'Prem',
