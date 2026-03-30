@@ -73,5 +73,6 @@ const Colors = {
   snackBlue: (alpha = 1) => `rgba(0, 112, 208, ${alpha})`,
   shadowContainer: (alpha = 1) => `rgba(36, 35, 38, ${alpha})`,
   borderColor: (alpha = 1) => `rgba(236, 231, 248, ${alpha})`,
+  ButtonBgColor: (alpha = 1) => `rgba(179, 179, 179, 1)`,
 };
 export default Colors;

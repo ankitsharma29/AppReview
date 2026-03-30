@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Modal,
   Linking,
+  Pressable,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AppImages, BonusDisable } from '../../assets/constant';
 import Fonts from '../../resource/theme/font';
 import Colors from '../../resource/theme/color';
@@ -61,6 +62,7 @@ import { interstitial } from '../../components/Ads/adMethods';
 import { trackScreenView } from '../../helper/ScreenTracking';
 import PromoBanner from '../PromoBanner/PromoBanner';
 import ViewAllSection from '../../components/ViewAllSection';
+import SnapCarousel from '../../components/SnapCarousel';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -247,7 +249,49 @@ const HomeScreen = ({ navigation }: any) => {
     });
     appOpenAd.show();
   };
+  const ImageRenderCard = useCallback(({ item }: any) => {
+    return (
+      <>
+        <Pressable
+          onPress={() => {
+            Linking.openURL(item?.channelUrl);
+          }}
+          style={[
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: scaleSize(12),
+            },
+          ]}
+        >
+          <Image
+            source={
+              isValidUrl(item?.image)
+                ? {
+                    uri: isValidUrl(item?.image)
+                      ? item?.image
+                      : 'data:image/png;base64,' + item?.image,
+                  }
+                : item?.image
+            }
+            style={styles.otherCards}
+            resizeMode="cover"
+          />
+        </Pressable>
+      </>
+    );
+  }, []);
 
+  const imageCrousal = [
+    {
+      image: AppImages.freeBrandBanner,
+      channelUrl: '',
+    },
+    {
+      image: AppImages.freeBrandBanner,
+      channelUrl: '',
+    },
+  ];
   return (
     <View style={styles.containe}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -282,6 +326,9 @@ const HomeScreen = ({ navigation }: any) => {
               resizeMode="cover"
             />
           </TouchableOpacity>
+
+          {/* brand permotion */}
+
           <ViewAllSection
             title={'Brand Permotion'}
             showViewAll={'showViewAll'}
@@ -290,6 +337,21 @@ const HomeScreen = ({ navigation }: any) => {
               navigation.navigate('AdsList');
             }}
           />
+          <View style={{ marginVertical: scaleSize(10) }} />
+          <SnapCarousel
+            data={imageCrousal}
+            renderItem={({ item }) => <ImageRenderCard item={item} />}
+            sliderWidth={screenWidth - 22}
+            itemWidth={screenWidth - 22}
+            autoplayInterval={5000}
+            dotStyle={styles.dotStyle}
+            inactiveDotStyle={styles.inactiveDotStyle}
+            inactiveDotScale={1}
+            needPagination={false}
+            autoplay={true}
+            // scrollEnabled={false}
+          />
+
           {/* Game List */}
           {GameList?.data?.length > 0 && (
             <ImageLabelSectionTitleFlatView
@@ -474,6 +536,18 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(16),
     fontFamily: Fonts.poppinsMedium,
     color: Colors.white(),
+  },
+  dotStyle: {
+    width: scaleSize(6),
+    height: scaleSize(6),
+    borderRadius: scaleSize(6),
+    backgroundColor: Colors.white(),
+  },
+  inactiveDotStyle: {
+    width: scaleSize(6),
+    height: scaleSize(6),
+    borderRadius: scaleSize(6),
+    backgroundColor: Colors.ButtonBgColor(),
   },
 });
 export default HomeScreen;
