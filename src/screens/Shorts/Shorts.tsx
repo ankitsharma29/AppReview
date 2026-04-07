@@ -11,9 +11,11 @@ import { WebView } from 'react-native-webview';
 import AsyncStorageServices from '../../helper/asyncStorageServices';
 import Header from '../../components/Header';
 import Colors from '../../resource/theme/color';
+import Fonts from '../../resource/theme/font';
+import Mixins from '../../resource/mixins/appStyle';
 
 const { height, width } = Dimensions.get('window');
-
+const { scaleFont, scaleSize } = Mixins;
 const Shorts = ({ navigation }) => {
   const [history, setHistory] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -57,32 +59,46 @@ const Shorts = ({ navigation }) => {
         </View> */}
       </View>
     ),
-    [currentIndex]
+    [currentIndex],
   );
 
   return (
     <View style={styles.container}>
-      {/* <Header title="History" navigation={navigation} /> */}
-
+      <Header title="Shorts" navigation={navigation} />
       {history.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No history found</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              navigation.navigate('PageWindow', {
+                item: {
+                  title: 'Get More Views In Multiple Tab',
+                  des: '*Your Video Must Be Longer Than one Minute',
+                  screen: 'PageWindow',
+                  flag: 'oneMinute',
+                },
+              });
+            }}
+          >
+            <Text style={styles.textStyle}>Browser Screen</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={history}
           keyExtractor={(item, index) => `${item}-${index}`}
           renderItem={renderItem}
-          pagingEnabled                          // Snap each URL to full screen
+          pagingEnabled // Snap each URL to full screen
           showsVerticalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           getItemLayout={(_, index) => ({
-            length: height - 60,                 // 60 = Header height
+            length: height - 60, // 60 = Header height
             offset: (height - 60) * index,
             index,
           })}
-          initialScrollIndex={0}                 // Auto-select first URL
+          initialScrollIndex={0} // Auto-select first URL
           maxToRenderPerBatch={2}
           windowSize={3}
         />
@@ -99,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white(),
   },
   slide: {
-    height: height - 60,   // Full screen minus header
+    height: height - 60, // Full screen minus header
     width: width,
   },
   urlBadge: {
@@ -124,5 +140,21 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#888',
+  },
+  button: {
+    marginTop: scaleSize(10),
+    width: 100,
+    padding: scaleSize(10),
+    backgroundColor: Colors.black(),
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+  textStyle: {
+    fontSize: 18,
+    fontFamily: Fonts.poppinsRegular,
+    color: Colors.white(),
+    fontWeight: '400',
+    textAlign: 'center',
+    padding: scaleSize(5),
   },
 });
