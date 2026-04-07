@@ -76,6 +76,12 @@ const HomeScreen = ({ navigation }: any) => {
       flag: 'oneMinute',
     },
     {
+      title: 'History Shorts',
+      des: 'View all your saved URLs in one place. Open any link instantly in full-screen WebView and scroll through your browsing history easily.',
+      screen: 'Shorts',
+      flag: 'oneMinute',
+    },
+    {
       title: 'Get More Views In Multiple Tab',
       des: '',
       screen: 'PageWindow',
@@ -109,7 +115,7 @@ const HomeScreen = ({ navigation }: any) => {
       } else {
         // setRewardAdsShow(true);
         // rewarded.show();
-        navigation.navigate('PageWindow', { item: item });
+        navigation.navigate(item?.screen, { item: item });
       }
       console.log('click');
     } catch (error) {
@@ -309,7 +315,11 @@ const HomeScreen = ({ navigation }: any) => {
   ];
   return (
     <View style={styles.containe}>
-      <Header title={'View & Watch Time Browser'} navigation={navigation} backButton={false}/>
+      <Header
+        title={'View & Watch Time Browser'}
+        navigation={navigation}
+        backButton={false}
+      />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ margin: scaleSize(10) }}>
           {/* <TouchableOpacity

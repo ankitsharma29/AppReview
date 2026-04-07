@@ -24,6 +24,7 @@ import {subscribeTopic} from '../helper/appUtils';
 import GameList from './GameList/GameList';
 import AdsList from './PromoBanner/AdsList';
 import HistoryScreen from './History/HistoryScreen';
+import Shorts from './Shorts/Shorts';
 
 const Stack = createNativeStackNavigator();
 
@@ -221,6 +222,7 @@ const Navigation = () => {
         <Stack.Screen name="GameList" component={GameList} />
         <Stack.Screen name="AdsList" component={AdsList} />
         <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
+        <Stack.Screen name="Shorts" component={Shorts} />
       </Stack.Navigator>
     </NavigationContainer>
   );
