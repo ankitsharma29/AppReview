@@ -19,17 +19,9 @@ const Header = ({
 }: any) => {
   return (
     <>
-      {skipshow == true ? (
-        <View
-          style={{
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            backgroundColor: Colors.HeaderColor(),
-            borderBottomLeftRadius: scaleSize(25),
-            borderBottomRightRadius: scaleSize(25),
-          }}
-        >
-          <View style={styles.headerMain}>
+      <View style={[styles.header]}>
+        <>
+          {backButton == true ? (
             <TouchableOpacity
               onPress={() => {
                 navigation.goBack();
@@ -37,45 +29,24 @@ const Header = ({
             >
               <ArrowBack fill={Colors.black()} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.skipButton} onPress={skipPress}>
-              <Text style={styles.skipText}>Skip</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{ marginTop: scaleSize(30) }}>
-            <Text style={styles.title}>{headerSubTitle}</Text>
-            <Text style={styles.subText}>{desc}</Text>
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.header]}>
-          <>
-            {backButton == true ? (
-              <TouchableOpacity
-                onPress={() => {
-                  navigation.goBack();
-                }}
-              >
-                <ArrowBack fill={Colors.black()} />
-              </TouchableOpacity>
-            ) : (
-              <Text></Text>
-            )}
+          ) : (
+            <Text></Text>
+          )}
 
-            <Text style={styles.headerText}>{title}</Text>
-            {historyButton == true ? (
-              <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate('HistoryScreen');
-                }}
-              >
-                <History fill={Colors.white()} />
-              </TouchableOpacity>
-            ) : (
-              <Text></Text>
-            )}
-          </>
-        </View>
-      )}
+          <Text style={styles.headerText}>{title}</Text>
+          {historyButton == true ? (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('HistoryScreen');
+              }}
+            >
+              <History fill={Colors.white()} />
+            </TouchableOpacity>
+          ) : (
+            <Text></Text>
+          )}
+        </>
+      </View>
     </>
   );
 };

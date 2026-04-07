@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AsyncStorageServices from '../../helper/asyncStorageServices';
 import Colors from '../../resource/theme/color';
 import Header from '../../components/Header';
+import { Copy, Delete } from '../../assets/constant';
+import Fonts from '../../resource/theme/font';
 
 const HistoryScreen = ({ navigation }: any) => {
   const [history, setHistory] = useState([]);
@@ -35,6 +38,11 @@ const HistoryScreen = ({ navigation }: any) => {
       'urlHistory',
       JSON.stringify(newHistory),
     );
+    ToastAndroid.showWithGravity(
+    "deleted item",
+    ToastAndroid.SHORT,
+    ToastAndroid.BOTTOM
+  );
   };
 
   const clearHistory = async () => {
@@ -55,23 +63,32 @@ const HistoryScreen = ({ navigation }: any) => {
 
   const copyUrl = url => {
     Clipboard.setString(url);
-    Alert.alert('Copied', 'URL copied to clipboard');
+    // Alert.alert('Copied', 'URL copied to clipboard');
+    ToastAndroid.showWithGravity(
+    "URL Copied",
+    ToastAndroid.SHORT,
+    ToastAndroid.BOTTOM
+  );
   };
 
   const renderItem = ({ item, index }) => (
     <View style={styles.card}>
-      <Text style={styles.url}>{item}</Text>
 
+      <Text style={styles.url} numberOfLines={1}>{index+1}.  {item}</Text>
       <View style={styles.row}>
-        <TouchableOpacity style={styles.copyBtn} onPress={() => copyUrl(item)}>
-          <Text style={styles.btnText}>Copy</Text>
+        <TouchableOpacity 
+        // style={styles.copyBtn} 
+        onPress={() => copyUrl(item)}>
+        
+          <Copy fill={Colors.white()}  />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.deleteBtn}
+          // style={styles.deleteBtn}
           onPress={() => deleteItem(index)}
         >
-          <Text style={styles.btnText}>Delete</Text>
+         
+          <Delete fill={Colors.white()}  />
         </TouchableOpacity>
       </View>
     </View>
@@ -83,22 +100,20 @@ const HistoryScreen = ({ navigation }: any) => {
 
       <FlatList
         data={history}
+        style={{marginTop:10,marginHorizontal:10}}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
         ListEmptyComponent={<Text style={styles.empty}>No History Found</Text>}
       />
-      {/* {history.length > 0 && (
+      {history.length > 0 && (
         <TouchableOpacity
           onPress={clearHistory}
           style={{
-            padding: scaleSize(10),
-            backgroundColor: Colors.black(),
             alignItems: 'center',
-            borderRadius: 5,
           }}
         >
-          <Text style={styles.clear}>Clear All</Text>
-        </TouchableOpacity> */}
+          <Text style={styles.clear}>Clear All History</Text>
+        </TouchableOpacity> 
       )}
     </View>
   );
@@ -129,16 +144,20 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: Colors.lightWhite(),
-    padding: 15,
+    backgroundColor: Colors.lightWhite2(),
+    padding: 10,
+    justifyContent:'space-between',
+    flexDirection: 'row',
     borderRadius: 8,
     marginBottom: 10,
     elevation: 2,
   },
 
   url: {
-    fontSize: 14,
+    fontSize: 18,
     marginBottom: 10,
+    flex:0.9,
+    fontFamily:Fonts.poppinsRegular
   },
 
   row: {
@@ -153,7 +172,7 @@ const styles = StyleSheet.create({
   },
 
   deleteBtn: {
-    backgroundColor: Colors.red(),
+    // backgroundColor: Colors.red(),
     padding: 8,
     borderRadius: 5,
   },
