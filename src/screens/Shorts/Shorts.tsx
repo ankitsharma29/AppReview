@@ -13,16 +13,17 @@ import Header from '../../components/Header';
 import Colors from '../../resource/theme/color';
 import Fonts from '../../resource/theme/font';
 import Mixins from '../../resource/mixins/appStyle';
+import { useIsFocused } from '@react-navigation/native';
 
 const { height, width } = Dimensions.get('window');
 const { scaleFont, scaleSize } = Mixins;
 const Shorts = ({ navigation }) => {
   const [history, setHistory] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const isFocused = useIsFocused();
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [isFocused]);
 
   const loadHistory = async () => {
     const data = await AsyncStorageServices.getItem('urlHistory');
