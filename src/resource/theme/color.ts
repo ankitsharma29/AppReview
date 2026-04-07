@@ -74,5 +74,6 @@ const Colors = {
   shadowContainer: (alpha = 1) => `rgba(36, 35, 38, ${alpha})`,
   borderColor: (alpha = 1) => `rgba(236, 231, 248, ${alpha})`,
   ButtonBgColor: (alpha = 1) => `rgba(179, 179, 179, 1)`,
+    HeaderColor: (alpha = 1) => '#F6F6F7',
 };
 export default Colors;

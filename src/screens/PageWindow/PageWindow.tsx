@@ -28,6 +28,7 @@ import { interstitial } from '../../components/Ads/adMethods';
 import { useIsFocused } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { AppImages } from '../../assets/constant';
+import Header from '../../components/Header';
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -131,10 +132,11 @@ const PageWindow = ({ navigation, route }: any) => {
 
   return (
     <View style={styles.containe}>
+      <Header title={'Browser Screen'} navigation={navigation} />
       <ScrollView>
         <View style={{ margin: scaleSize(10) }}>
           {/* <DownLoadVideo /> */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => {
               Linking.openURL('https://cracknaukri.com/');
             }}
@@ -144,7 +146,7 @@ const PageWindow = ({ navigation, route }: any) => {
               style={styles.otherCards}
               resizeMode="cover"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <View style={styles.subContainer}>
             <Text style={styles.textStyle}>Link*</Text>
             <TextInput

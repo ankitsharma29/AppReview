@@ -1,5 +1,6 @@
 export { default as BonusDisable } from './svgs/bonus_disable.svg';
 export { default as BonusEnable } from './svgs/bonus_enable.svg';
+export {default as ArrowBack} from './svgs/arrow_back.svg';
 
 export const AppImages = {
   MyName: require('./images/ankit.jpg'),

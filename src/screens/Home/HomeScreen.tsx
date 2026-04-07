@@ -63,6 +63,7 @@ import { trackScreenView } from '../../helper/ScreenTracking';
 import PromoBanner from '../PromoBanner/PromoBanner';
 import ViewAllSection from '../../components/ViewAllSection';
 import SnapCarousel from '../../components/SnapCarousel';
+import Header from '../../components/Header';
 
 const HomeScreen = ({ navigation }: any) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -211,200 +212,7 @@ const HomeScreen = ({ navigation }: any) => {
   const [GameList, setGameList] = useState<any>({});
   const [AdsListData, setAdsListData] = useState<any>({
     title: 'Brand Promotion',
-    data: [
-      {
-        name: 'Prem',
-        channelName: 'premgaming007-b2k',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl:
-          'https://youtube.com/shorts/TcogHZ8q0pg?si=2Nwv6V23hb5Hp-Gs',
-        platform: 'youtube',
-      },
-      {
-        _id: '69c7dd14007ca2e6a7389fbf',
-        name: 'Mohit Sawankar ',
-        channelName: 'cartoonparts99',
-        images: {
-          cover:
-            'https://static.cdninstagram.com/rsrc.php/yw/r/icwX0xAk0pz.webp',
-        },
-        channelUrl:
-          'https://www.instagram.com/cartoonparts99?igsh=MWZyeWkzcGxkc201cg==',
-        platform: 'instagram',
-        mobileNumber: '9923719125',
-        photo: '',
-        createdAt: '2026-03-28T13:52:20.950Z',
-        updatedAt: '2026-03-28T13:52:20.950Z',
-        __v: 0,
-      },
-      {
-        name: 'Garhwa Sandeep',
-        channelName: 'Garhwa Sandeep',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl: 'https://www.youtube.com/@garhwasandeepkr',
-        platform: 'youtube',
-      },
-      {
-        _id: '69c39ae79f8d7a3cb0423ea8',
-        name: 'Dhaval',
-        channelName: 'Hanumanismyfriend',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl:
-          'https://youtube.com/@hanumanismyfriendai?si=1GAYdoCJQfD7sc9t',
-        platform: 'youtube',
-        mobileNumber: '9510516982',
-        photo: '',
-        createdAt: '2026-03-25T08:20:55.574Z',
-        updatedAt: '2026-03-25T08:20:55.574Z',
-        __v: 0,
-      },
-      {
-        _id: '69c39e829f8d7a3cb0423eac',
-        name: 'Laxmipriya kumbhar ',
-        channelName: '@Laxmipriyajungkook',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl:
-          'https://youtube.com/@laxmipriyajungkook?si=RUURVCCdXf5oOu56',
-        platform: 'youtube',
-        mobileNumber: '9078320232',
-        photo: '',
-        createdAt: '2026-03-25T08:36:18.900Z',
-        updatedAt: '2026-03-25T08:36:18.900Z',
-        __v: 0,
-      },
-      {
-        _id: '69c8ebadced225dea51b0dc4',
-        name: 'Nnitin',
-        channelName: 'must_reel0',
-        images: {
-          cover:
-            'https://static.cdninstagram.com/rsrc.php/yw/r/icwX0xAk0pz.webp',
-        },
-        channelUrl:
-          'https://www.instagram.com/nitin___o07?igsh=OHVlODUyOHJlNGRw',
-        platform: 'instagram',
-        mobileNumber: '',
-        photo: '',
-        createdAt: '2026-03-29T09:06:53.176Z',
-        updatedAt: '2026-03-29T09:06:53.176Z',
-        __v: 0,
-      },
-      {
-        _id: '69c4f06f9f8d7a3cb0424b71',
-        name: 'Simba',
-        channelName: 'Sher',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl:
-          'https://youtube.com/shorts/qfzHxPv8oAA?si=uO4tbfcBwgMV7-v1',
-        platform: 'youtube',
-        mobileNumber: '9917294814',
-        photo: '',
-        createdAt: '2026-03-26T08:38:07.128Z',
-        updatedAt: '2026-03-26T08:38:07.128Z',
-        __v: 0,
-      },
-      {
-        _id: '69c52f3d9f8d7a3cb0424d2f',
-        name: 'Gourav ',
-        channelName: 'Davil_anime ',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-
-        channelUrl:
-          'https://youtube.com/shorts/0CWX7-5JCko?si=vgI107f2n9N5SV2N',
-        platform: 'youtube',
-        mobileNumber: '',
-        photo: '',
-        createdAt: '2026-03-26T13:06:05.638Z',
-        updatedAt: '2026-03-26T13:06:05.638Z',
-        __v: 0,
-      },
-      {
-        _id: '69c5b22e007ca2e6a7388a7c',
-        name: 'Kashif',
-        channelName: 'Khan',
-        images: {
-          cover:
-            'https://static.cdninstagram.com/rsrc.php/yw/r/icwX0xAk0pz.webp',
-        },
-        channelUrl:
-          'https://www.instagram.com/reel/DWXL8axjRVM/?igsh=MTRtdHEwMnltbjczcA==',
-        platform: 'instagram',
-        mobileNumber: '',
-        photo: '',
-        createdAt: '2026-03-26T22:24:46.861Z',
-        updatedAt: '2026-03-26T22:24:46.861Z',
-        __v: 0,
-      },
-      {
-        _id: '69c560e9007ca2e6a7388726',
-        name: 'Sattaym',
-        channelName: 'Shelar',
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl:
-          'https://youtube.com/@sattaymshelar2338?si=f_15yXJ2nmcDYoAm',
-        platform: 'youtube',
-        mobileNumber: '7057077765',
-        photo: '',
-        createdAt: '2026-03-26T16:38:01.361Z',
-        updatedAt: '2026-03-26T16:38:01.361Z',
-        __v: 0,
-      },
-      {
-        _id: '69c73890007ca2e6a73898e7',
-        name: 'Taib Mondal ',
-        channelName: 'Crazy sigma743 ',
-        images: {
-          cover:
-            'https://static.cdninstagram.com/rsrc.php/yw/r/icwX0xAk0pz.webp',
-        },
-        channelUrl:
-          'https://www.instagram.com/crazy_sigma743?igsh=MTRtdW40ZDI0ajBvbA==',
-        platform: 'instagram',
-        mobileNumber: '8918663790',
-        photo: '',
-        createdAt: '2026-03-28T02:10:24.039Z',
-        updatedAt: '2026-03-28T02:10:24.039Z',
-        __v: 0,
-      },
-      {
-        _id: '69c56e46007ca2e6a7388894',
-        name: 'vipin',
-        channelName: 'kumar',
-
-        images: {
-          cover:
-            'https://www.youtube.com/s/desktop/7cf77294/img/favicon_144x144.png',
-        },
-        channelUrl: 'https://youtube.com/@ivaansuryanvlogs?si=rd7bD0cRKZFhCCAn',
-        platform: 'youtube',
-        mobileNumber: '9811524561',
-        photo: '',
-        createdAt: '2026-03-26T17:35:02.409Z',
-        updatedAt: '2026-03-26T17:35:02.409Z',
-        __v: 0,
-      },
-    ],
+    data: [],
     showViewAll: 'viewall',
     viewAllUrl: 'viewall',
   });
@@ -501,6 +309,7 @@ const HomeScreen = ({ navigation }: any) => {
   ];
   return (
     <View style={styles.containe}>
+      <Header title={'View & Watch Time Browser'} navigation={navigation} backButton={false}/>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ margin: scaleSize(10) }}>
           {/* <TouchableOpacity
@@ -517,7 +326,7 @@ const HomeScreen = ({ navigation }: any) => {
             />
           </TouchableOpacity> */}
           {/* <PromoBanner /> */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={async () => {
               await trackScreenView('CrackNaukriStateBanner', 'AppReview');
 
@@ -532,7 +341,7 @@ const HomeScreen = ({ navigation }: any) => {
               style={styles.otherCardsNormal}
               resizeMode="cover"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* brand permotion */}
 
@@ -558,7 +367,7 @@ const HomeScreen = ({ navigation }: any) => {
             autoplay={true}
             // scrollEnabled={false}
           /> */}
-          {AdsListData?.data?.length > 0 && (
+          {/* {AdsListData?.data?.length > 0 && (
             <ImageLabelSectionTitleFlatView
               widget={AdsListData}
               style={styles.menu}
@@ -567,17 +376,8 @@ const HomeScreen = ({ navigation }: any) => {
                 !!AdsListData.viewAllUrl && onItemAdsPress()
               }
             />
-          )}
+          )} */}
 
-          {/* Game List */}
-          {GameList?.data?.length > 0 && (
-            <ImageLabelSectionTitleFlatView
-              widget={GameList}
-              style={styles.menu}
-              onItemPress={onGameItemPress}
-              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
-            />
-          )}
           {/* download videos */}
           {/* {downloadUrl?.data?.length > 0 && (
             <ImageLabelSectionTitleFlatView
@@ -589,7 +389,10 @@ const HomeScreen = ({ navigation }: any) => {
           )} */}
           {/* <DownLoadVideo /> */}
           {/* Banner Ad show */}
-          <BannerAds BaneerSize="390x170" />
+          <BannerAds
+            BaneerSize="390x170"
+            adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+          />
           {HomeData.map((item: any, index: number) => (
             <>
               <View style={styles.subContainer}>
@@ -603,7 +406,7 @@ const HomeScreen = ({ navigation }: any) => {
                     navigationScreen(item);
                   }}
                 >
-                  <Text style={styles.textStyle}>View{' >'} </Text>
+                  <Text style={styles.textStyle}>Click</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -611,10 +414,17 @@ const HomeScreen = ({ navigation }: any) => {
 
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
-        </View>
-        {/* Banner Ad show */}
-        <View style={{ margin: scaleSize(10) }}>
-          <BannerAds adUnitId={'ca-app-pub-4293747280421578/5005960189'} />
+          {/* Game List */}
+          {GameList?.data?.length > 0 && (
+            <ImageLabelSectionTitleFlatView
+              widget={GameList}
+              style={styles.menu}
+              onItemPress={onGameItemPress}
+              onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
+            />
+          )}
+          {/* Banner Ad show */}
+          {/* <BannerAds adUnitId={'ca-app-pub-4293747280421578/5005960189'} /> */}
         </View>
       </ScrollView>
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
@@ -658,8 +468,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white(),
   },
   subContainer: {
-    backgroundColor: Colors.green9(),
-    padding: scaleSize(30),
+    backgroundColor: Colors.gradientTop(),
+    padding: scaleSize(20),
     borderRadius: scaleSize(10),
     justifyContent: 'center',
     alignItems: 'center',
@@ -692,7 +502,7 @@ const styles = StyleSheet.create({
   button: {
     width: 100,
     padding: scaleSize(10),
-    backgroundColor: Colors.gradientTop(),
+    backgroundColor: Colors.black(),
     alignItems: 'center',
     borderRadius: 5,
   },

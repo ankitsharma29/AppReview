@@ -188,18 +188,19 @@ const Navigation = () => {
         }
       }}>
       <StatusBar
-        backgroundColor={Colors.green9()}
-        barStyle={'dark-content'}
+        backgroundColor={Colors.gradientTop()}
+        // barStyle={'dark-content'}
         translucent={true}
+        showHideTransition={"fade"}
       />
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
-          headerShown: true,
+          headerShown: false,
           gestureDirection: 'horizontal',
           headerTintColor: 'black',
           headerTitleAlign: 'center',
-          headerStyle: {backgroundColor: Colors.green9()},
+          headerStyle: {backgroundColor: Colors.gradientTop()},
           
         }}>
         <Stack.Screen

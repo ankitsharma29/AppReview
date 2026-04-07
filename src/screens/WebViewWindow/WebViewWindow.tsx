@@ -21,6 +21,7 @@ import Fonts from '../../resource/theme/font';
 import {isIOS} from '../../helper/appUtils';
 import BannerAds from '../../components/Ads/BannerAds';
 import { BannerAdSize } from 'react-native-google-mobile-ads';
+import Header from '../../components/Header';
 const {scaleFont, scaleSize} = Mixins;
 const WebViewWindow = ({navigation, route}: any) => {
   const inputRef = useRef(null);
@@ -91,6 +92,7 @@ const WebViewWindow = ({navigation, route}: any) => {
   };
   return (
     <View style={{flex: 1, backgroundColor: Colors.white()}}>
+      <Header title={'Browser Screen'} navigation={navigation} />
       <ScrollView>
         {(data.flag == 'oneMinute' || data.flag == 'addMinutes') && (
           <View
