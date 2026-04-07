@@ -39,10 +39,10 @@ const HistoryScreen = ({ navigation }: any) => {
       JSON.stringify(newHistory),
     );
     ToastAndroid.showWithGravity(
-    "deleted item",
-    ToastAndroid.SHORT,
-    ToastAndroid.BOTTOM
-  );
+      'deleted item',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   };
 
   const clearHistory = async () => {
@@ -65,30 +65,30 @@ const HistoryScreen = ({ navigation }: any) => {
     Clipboard.setString(url);
     // Alert.alert('Copied', 'URL copied to clipboard');
     ToastAndroid.showWithGravity(
-    "URL Copied",
-    ToastAndroid.SHORT,
-    ToastAndroid.BOTTOM
-  );
+      'URL Copied',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
   };
 
   const renderItem = ({ item, index }) => (
     <View style={styles.card}>
-
-      <Text style={styles.url} numberOfLines={1}>{index+1}.  {item}</Text>
+      <Text style={styles.url} numberOfLines={1}>
+        {index + 1}. {item}
+      </Text>
       <View style={styles.row}>
-        <TouchableOpacity 
-        // style={styles.copyBtn} 
-        onPress={() => copyUrl(item)}>
-        
-          <Copy fill={Colors.white()}  />
+        <TouchableOpacity
+          // style={styles.copyBtn}
+          onPress={() => copyUrl(item)}
+        >
+          <Copy fill={Colors.white()} />
         </TouchableOpacity>
 
         <TouchableOpacity
           // style={styles.deleteBtn}
           onPress={() => deleteItem(index)}
         >
-         
-          <Delete fill={Colors.white()}  />
+          <Delete fill={Colors.white()} />
         </TouchableOpacity>
       </View>
     </View>
@@ -100,7 +100,7 @@ const HistoryScreen = ({ navigation }: any) => {
 
       <FlatList
         data={history}
-        style={{marginTop:10,marginHorizontal:10}}
+        style={{ marginTop: 10, marginHorizontal: 10 }}
         keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
         ListEmptyComponent={<Text style={styles.empty}>No History Found</Text>}
@@ -113,7 +113,7 @@ const HistoryScreen = ({ navigation }: any) => {
           }}
         >
           <Text style={styles.clear}>Clear All History</Text>
-        </TouchableOpacity> 
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.lightWhite2(),
     padding: 10,
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
     flexDirection: 'row',
     borderRadius: 8,
     marginBottom: 10,
@@ -156,8 +156,8 @@ const styles = StyleSheet.create({
   url: {
     fontSize: 18,
     marginBottom: 10,
-    flex:0.9,
-    fontFamily:Fonts.poppinsRegular
+    flex: 0.9,
+    fontFamily: Fonts.poppinsRegular,
   },
 
   row: {
