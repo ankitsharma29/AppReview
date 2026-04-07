@@ -29,6 +29,7 @@ import { useIsFocused } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { AppImages } from '../../assets/constant';
 import Header from '../../components/Header';
+import AsyncStorageServices from '../../helper/asyncStorageServices';
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -129,7 +130,14 @@ const PageWindow = ({ navigation, route }: any) => {
   // if (!loaded) {
   //   return null;
   // }
+  const saveHistory = async url => {
+    let data = await AsyncStorageServices.getItem('urlHistory');
+    let history = data ? JSON.parse(data) : [];
 
+    history.unshift(url);
+
+    await AsyncStorageServices.setItem('urlHistory', JSON.stringify(history));
+  };
   return (
     <View style={styles.containe}>
       <Header title={'Browser Screen'} navigation={navigation} />
@@ -213,6 +221,7 @@ const PageWindow = ({ navigation, route }: any) => {
               <TouchableOpacity
                 style={styles.buttonClick}
                 onPress={async () => {
+                  saveHistory(value);
                   try {
                     console.log('CLICK');
                     if (windowScreen == 0 && Customevalue == 0) {

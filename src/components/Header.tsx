@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
-import { ArrowBack } from '../assets/constant';
+import { ArrowBack, History } from '../assets/constant';
 import Colors from '../resource/theme/color';
 import Mixins from '../resource/mixins/appStyle';
 import Fonts from '../resource/theme/font';
@@ -15,6 +15,7 @@ const Header = ({
   skipPress,
   backgroundColor = '',
   backButton = true,
+  historyButton = true,
 }: any) => {
   return (
     <>
@@ -46,11 +47,9 @@ const Header = ({
           </View>
         </View>
       ) : (
-        <View style={[styles.header,
-          !backButton && {justifyContent: 'center',}
-        ]}>
+        <View style={[styles.header]}>
           <>
-            {backButton == true && (
+            {backButton == true ? (
               <TouchableOpacity
                 onPress={() => {
                   navigation.goBack();
@@ -58,10 +57,22 @@ const Header = ({
               >
                 <ArrowBack fill={Colors.black()} />
               </TouchableOpacity>
+            ) : (
+              <Text></Text>
             )}
 
             <Text style={styles.headerText}>{title}</Text>
-            <Text></Text>
+            {historyButton == true ? (
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('HistoryScreen');
+                }}
+              >
+                <History fill={Colors.white()} />
+              </TouchableOpacity>
+            ) : (
+              <Text></Text>
+            )}
           </>
         </View>
       )}
@@ -81,9 +92,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gradientTop(),
     justifyContent: 'space-between',
     flexDirection: 'row',
-    alignItems:'center',
-    alignContent:'center',
-    paddingVertical:scaleSize(10)
+    alignItems: 'center',
+    alignContent: 'center',
+    padding: scaleSize(10),
   },
   headerText: {
     color: Colors.white(),

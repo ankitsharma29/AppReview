@@ -23,6 +23,7 @@ import PhoneSignIn from './Todos/PhoneLogin';
 import {subscribeTopic} from '../helper/appUtils';
 import GameList from './GameList/GameList';
 import AdsList from './PromoBanner/AdsList';
+import HistoryScreen from './History/HistoryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -189,7 +190,7 @@ const Navigation = () => {
       }}>
       <StatusBar
         backgroundColor={Colors.gradientTop()}
-        // barStyle={'dark-content'}
+        barStyle={'dark-content'}
         translucent={true}
         showHideTransition={"fade"}
       />
@@ -219,6 +220,7 @@ const Navigation = () => {
         <Stack.Screen name="PhoneSignIn" component={PhoneSignIn} />
         <Stack.Screen name="GameList" component={GameList} />
         <Stack.Screen name="AdsList" component={AdsList} />
+        <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
