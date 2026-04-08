@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   buttonClick: {
     width: '50%',
     padding: scaleSize(10),
-    backgroundColor: Colors.blue1(),
+    backgroundColor: Colors.black(),
     alignItems: 'center',
     borderRadius: 5,
     marginVertical: scaleSize(15),

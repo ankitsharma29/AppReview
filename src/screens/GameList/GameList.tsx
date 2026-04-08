@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -8,24 +8,25 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import ShadowRadiusView from '../../components/ShadowRadiusView';
 
-import {customWebTab} from '../../components/customWebTab';
+import { customWebTab } from '../../components/customWebTab';
 import Mixins from '../../resource/mixins/appStyle';
 import Fonts from '../../resource/theme/font';
 import Colors from '../../resource/theme/color';
-import {Image} from 'react-native';
-import {RefreshControl} from 'react-native';
-import {getDeviceId} from '../../helper/appUtils';
+import { Image } from 'react-native';
+import { RefreshControl } from 'react-native';
+import { getDeviceId } from '../../helper/appUtils';
+import Header from '../../components/Header';
 
 type GameListProps = NativeStackScreenProps<any, 'GameList'>;
 
-const {scaleSize, scaleFont} = Mixins;
+const { scaleSize, scaleFont } = Mixins;
 
-const GameList = ({navigation}: GameListProps) => {
-  const [dimensions, setDimensions] = useState<any>({width: 0, height: 0});
+const GameList = ({ navigation }: GameListProps) => {
+  const [dimensions, setDimensions] = useState<any>({ width: 0, height: 0 });
   const [GameList, setGameList] = useState<any>([]);
   const [GameListData, setGameListData] = useState<any>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -59,16 +60,17 @@ const GameList = ({navigation}: GameListProps) => {
     <View style={styles.separator} />
   );
 
-  const renderListItem: ListRenderItem<any> = ({item}) => (
+  const renderListItem: ListRenderItem<any> = ({ item }) => (
     <>
       <TouchableOpacity
         onPress={() => {
           onGameItemPress(item);
-        }}>
+        }}
+      >
         <ShadowRadiusView style={styles.listItem}>
           <Image
             style={styles.image}
-            source={{uri: item.images?.cover}}
+            source={{ uri: item.images?.cover }}
             resizeMode="contain"
           />
           <Text numberOfLines={2} style={styles.title}>
@@ -118,22 +120,25 @@ const GameList = ({navigation}: GameListProps) => {
   }, []);
 
   return (
-    <FlatList
-      data={GameList ?? []}
-      numColumns={2}
-      contentContainerStyle={styles.listContainerStyle}
-      renderItem={renderListItem}
-      keyExtractor={keyExtractor}
-      onLayout={onListLayout}
-      ItemSeparatorComponent={ItemSeparatorComponent}
-      onEndReachedThreshold={0.2}
-      // ListEmptyComponent={ListEmptyComponent}
-      // showsVerticalScrollIndicator={true}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    />
+    <>
+      <Header title={'Games List'} navigation={navigation} />
+      <FlatList
+        data={GameList ?? []}
+        numColumns={2}
+        contentContainerStyle={styles.listContainerStyle}
+        renderItem={renderListItem}
+        keyExtractor={keyExtractor}
+        onLayout={onListLayout}
+        ItemSeparatorComponent={ItemSeparatorComponent}
+        onEndReachedThreshold={0.2}
+        // ListEmptyComponent={ListEmptyComponent}
+        // showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
+    </>
   );
 };
 
@@ -167,7 +172,7 @@ const getStyles = (listWidth: number) =>
       fontFamily: Fonts.poppinsBold,
       fontSize: scaleFont(20),
       color: Colors.white(),
-      fontWeight:'bold'
+      fontWeight: 'bold',
     },
     subtitle: {
       fontFamily: Fonts.poppinsRegular,

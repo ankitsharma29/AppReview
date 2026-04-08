@@ -25,11 +25,15 @@ const HistoryScreen = ({ navigation }: any) => {
   }, [isFocused]);
 
   useEffect(() => {
-    if (isFocused == false) {
-      (async () => {
-        await interstitial.show();
-      })();
-    }
+    try {
+      setTimeout(() => {
+        if (isFocused == true) {
+          (async () => {
+            await interstitial.show();
+          })();
+        }
+      }, 5000);
+    } catch (error) {}
   }, [isFocused]);
   useEffect(() => {
     loadHistory();

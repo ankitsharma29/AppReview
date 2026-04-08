@@ -127,6 +127,8 @@ const HomeScreen = ({ navigation }: any) => {
         openUrl(
           'https://play.google.com/store/apps/dev?id=6984237370327765283&hl=en_IN&gl=US',
         );
+        appOpenAd.show();
+        return;
       } else {
         // setRewardAdsShow(true);
         // rewarded.show();
@@ -271,8 +273,8 @@ const HomeScreen = ({ navigation }: any) => {
     navigation.navigate('GameList');
   };
   const onItemAdsPress = async () => {
-    await interstitial.show();
     navigation.navigate('AdsList');
+    await interstitial.show();
   };
   const onItemAdsPressV = async (item: any) => {
     Linking.openURL(item?.channelUrl);

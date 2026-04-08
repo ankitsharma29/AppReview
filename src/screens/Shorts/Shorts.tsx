@@ -14,6 +14,7 @@ import Colors from '../../resource/theme/color';
 import Fonts from '../../resource/theme/font';
 import Mixins from '../../resource/mixins/appStyle';
 import { useIsFocused } from '@react-navigation/native';
+import { interstitial } from '../../components/Ads/adMethods';
 
 const { height, width } = Dimensions.get('window');
 const { scaleFont, scaleSize } = Mixins;
@@ -63,6 +64,24 @@ const Shorts = ({ navigation }) => {
     [currentIndex],
   );
 
+  // ads
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
+
+  useEffect(() => {
+    try {
+      setTimeout(() => {
+        if (isFocused == true) {
+          (async () => {
+            await interstitial.show();
+          })();
+        }
+      }, 5000);
+    } catch (error) {}
+  }, [isFocused]);
+
+  
   return (
     <View style={styles.container}>
       <Header title="Shorts" navigation={navigation} />
