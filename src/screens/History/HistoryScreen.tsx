@@ -14,10 +14,23 @@ import Colors from '../../resource/theme/color';
 import Header from '../../components/Header';
 import { Copy, Delete } from '../../assets/constant';
 import Fonts from '../../resource/theme/font';
+import { interstitial } from '../../components/Ads/adMethods';
+import { useIsFocused } from '@react-navigation/native';
 
 const HistoryScreen = ({ navigation }: any) => {
   const [history, setHistory] = useState([]);
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
 
+  useEffect(() => {
+    if (isFocused == false) {
+      (async () => {
+        await interstitial.show();
+      })();
+    }
+  }, [isFocused]);
   useEffect(() => {
     loadHistory();
   }, []);

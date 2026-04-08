@@ -47,7 +47,23 @@ const adAppOpenId = __DEV__
   : 'ca-app-pub-4293747280421578/7561318171';
 
 const appOpenAd = AppOpenAd.createForAdRequest(adAppOpenId, {
-  keywords: ['fashion', 'clothing'],
+  keywords: [
+    'fashion',
+    'clothing',
+    'shopping',
+    'lifestyle',
+    'ecommerce',
+    'trends',
+    'retail',
+    'accessories',
+    'luxury',
+    'apparel',
+    'deals',
+    'boutique',
+    'style',
+    'outfits',
+    'designer',
+  ],
 });
 
 const { scaleFont, scaleSize } = Mixins;
@@ -107,7 +123,6 @@ const HomeScreen = ({ navigation }: any) => {
   const navigationScreen = (item: any) => {
     try {
       // Show the app open ad when user brings the app to the foreground.
-      appOpenAd.show();
       if (item.flag == 'link') {
         openUrl(
           'https://play.google.com/store/apps/dev?id=6984237370327765283&hl=en_IN&gl=US',
@@ -117,10 +132,10 @@ const HomeScreen = ({ navigation }: any) => {
         // rewarded.show();
         navigation.navigate(item?.screen, { item: item });
       }
-      console.log('click');
+      appOpenAd.show();
     } catch (error) {
       // console.log("error",error.stack);
-      navigation.navigate('PageWindow', { item: item });
+      navigation.navigate(item?.screen, { item: item });
       // console.log("error",error.message);
       setCrashlaticsLog(error);
     }
