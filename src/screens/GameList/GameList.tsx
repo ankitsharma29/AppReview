@@ -121,7 +121,11 @@ const GameList = ({ navigation }: GameListProps) => {
 
   return (
     <>
-      <Header title={'Games List'} navigation={navigation} />
+      <Header
+        title={'Games List'}
+        navigation={navigation}
+        historyButton={false}
+      />
       <FlatList
         data={GameList ?? []}
         numColumns={2}

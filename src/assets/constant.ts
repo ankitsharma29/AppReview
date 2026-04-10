@@ -4,6 +4,10 @@ export {default as ArrowBack} from './svgs/arrow_back.svg';
 export {default as History} from './svgs/history.svg';
 export {default as Delete} from './svgs/delete.svg';
 export {default as Copy} from './svgs/copy.svg';
+export {default as HomeIcon} from './svgs/home.svg';
+export {default as ShortsIcon} from './svgs/shorts.svg';
+export {default as HistoryIcon} from './svgs/historyIcon.svg';
+export {default as GameIcon} from './svgs/game.svg';
 
 export const AppImages = {
   MyName: require('./images/ankit.jpg'),

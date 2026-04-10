@@ -81,10 +81,9 @@ const Shorts = ({ navigation }) => {
     } catch (error) {}
   }, [isFocused]);
 
-  
   return (
     <View style={styles.container}>
-      <Header title="Shorts" navigation={navigation} />
+      {/* <Header title="Shorts" navigation={navigation} historyButton={false} /> */}
       {history.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No history found</Text>

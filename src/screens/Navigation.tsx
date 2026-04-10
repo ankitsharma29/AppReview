@@ -1,30 +1,19 @@
-import {View, Text, StatusBar, Platform} from 'react-native';
-import React, {useEffect, useRef} from 'react';
-import HomeScreen from './Home/HomeScreen';
-import ProfileScreen from './Profile/ProfileScreen';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StatusBar, Platform } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Colors from '../resource/theme/color';
-import PageWindow from './PageWindow/PageWindow';
-import WebViewWindow from './WebViewWindow/WebViewWindow';
-import WebViewPage from '../components/WebViewPage';
-import {navigationRef, onReady} from '../helper/RootNavigation';
-import {trackScreenView} from '../helper/ScreenTracking';
+import { navigationRef, onReady } from '../helper/RootNavigation';
+import { trackScreenView } from '../helper/ScreenTracking';
 import PushNotification from 'react-native-push-notification';
 import PushNotificationIos from '@react-native-community/push-notification-ios';
-import {check, PERMISSIONS, RESULTS, request} from 'react-native-permissions';
+import { check, PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import messaging from '@react-native-firebase/messaging';
 import notificationManager from '../helper/notificationManager';
 import firebase from '@react-native-firebase/app';
 import database from '@react-native-firebase/database';
-import TodoApp from './Todos/Todo';
-import TodoFireStore from './Todos/TodoFireStore';
-import PhoneSignIn from './Todos/PhoneLogin';
-import {subscribeTopic} from '../helper/appUtils';
-import GameList from './GameList/GameList';
-import AdsList from './PromoBanner/AdsList';
-import HistoryScreen from './History/HistoryScreen';
-import Shorts from './Shorts/Shorts';
+import { subscribeTopic } from '../helper/appUtils';
+import BottomTab from '../navigator/tab/BottomTab';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,7 +22,7 @@ const stackScreenOptions = {
   gestureDirection: 'horizontal',
   headerTintColor: 'black',
   headerTitleAlign: 'center',
-  headerStyle: {backgroundColor: Colors.orange1()},
+  headerStyle: { backgroundColor: Colors.orange1() },
 };
 const Navigation = () => {
   // configure the push notification once, and use it on any screen
@@ -49,7 +38,7 @@ const Navigation = () => {
     PushNotification.configure({
       onNotification: notification => {
         if (notification) {
-          const {foreground, userInteraction, title, message} = notification;
+          const { foreground, userInteraction, title, message } = notification;
           if (foreground && (title || message) && !userInteraction)
             PushNotification.localNotification(notification);
 
@@ -188,42 +177,16 @@ const Navigation = () => {
           routeNameRef.current = currentRouteName;
           await trackScreenView(currentRouteName, 'AppReview');
         }
-      }}>
+      }}
+    >
       <StatusBar
         backgroundColor={Colors.gradientTop()}
         barStyle={'dark-content'}
         translucent={true}
-        showHideTransition={"fade"}
+        showHideTransition={'fade'}
       />
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
-          gestureDirection: 'horizontal',
-          headerTintColor: 'black',
-          headerTitleAlign: 'center',
-          headerStyle: {backgroundColor: Colors.gradientTop()},
-          
-        }}>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: 'View & Watch Time Browser',
-          }}
-        />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="PageWindow" component={PageWindow} />
-        <Stack.Screen name="WebViewWindow" component={WebViewWindow} />
-        <Stack.Screen name="WebViewPage" component={WebViewPage} />
-        <Stack.Screen name="TodoApp" component={TodoApp} />
-        <Stack.Screen name="TodoFireStore" component={TodoFireStore} />
-        <Stack.Screen name="PhoneSignIn" component={PhoneSignIn} />
-        <Stack.Screen name="GameList" component={GameList} />
-        <Stack.Screen name="AdsList" component={AdsList} />
-        <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
-        <Stack.Screen name="Shorts" component={Shorts} />
-      </Stack.Navigator>
+
+      <BottomTab />
     </NavigationContainer>
   );
 };

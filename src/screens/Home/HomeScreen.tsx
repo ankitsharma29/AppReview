@@ -91,12 +91,12 @@ const HomeScreen = ({ navigation }: any) => {
       screen: 'PageWindow',
       flag: 'oneMinute',
     },
-    {
-      title: 'History Shorts',
-      des: 'View all your saved URLs in one place. Open any link instantly in full-screen WebView and scroll through your browsing history easily.',
-      screen: 'Shorts',
-      flag: 'oneMinute',
-    },
+    // {
+    //   title: 'History Shorts',
+    //   des: 'View all your saved URLs in one place. Open any link instantly in full-screen WebView and scroll through your browsing history easily.',
+    //   screen: 'Shorts',
+    //   flag: 'oneMinute',
+    // },
     {
       title: 'Get More Views In Multiple Tab',
       des: '',
@@ -165,7 +165,7 @@ const HomeScreen = ({ navigation }: any) => {
     });
   };
   useEffect(() => {
-    fetchGameData();
+    // fetchGameData();
     // fcmTokenset();
   }, []);
 
@@ -336,6 +336,7 @@ const HomeScreen = ({ navigation }: any) => {
         title={'View & Watch Time Browser'}
         navigation={navigation}
         backButton={false}
+        historyButton={false}
       />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ margin: scaleSize(10) }}>
@@ -442,14 +443,14 @@ const HomeScreen = ({ navigation }: any) => {
           {/* Reward Ad show */}
           {/* <RewardAds VisibleReward={RewardAdsShow} /> */}
           {/* Game List */}
-          {GameList?.data?.length > 0 && (
+          {/* {GameList?.data?.length > 0 && (
             <ImageLabelSectionTitleFlatView
               widget={GameList}
               style={styles.menu}
               onItemPress={onGameItemPress}
               onViewAllPress={() => !!GameList.viewAllUrl && onItemPress()}
             />
-          )}
+          )} */}
           {/* Banner Ad show */}
           {/* <BannerAds adUnitId={'ca-app-pub-4293747280421578/5005960189'} /> */}
         </View>
