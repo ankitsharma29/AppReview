@@ -238,7 +238,7 @@ const HomeScreen = ({ navigation }: any) => {
           console.log('res', res);
         })
         .catch(err => {
-          console.error('Error in payment_status');
+          console.error('Error in track');
         });
     };
     fireEvent();
