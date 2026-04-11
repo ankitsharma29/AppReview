@@ -12,6 +12,7 @@ import AdsList from '../../screens/PromoBanner/AdsList';
 import HistoryScreen from '../../screens/History/HistoryScreen';
 import Shorts from '../../screens/Shorts/Shorts';
 import PhoneSignIn from '../../screens/Todos/PhoneLogin';
+import NetSpeedChecker from '../../screens/NetSpeedChecker/NetSpeedChecker';
 const Stack = createNativeStackNavigator();
 const HomeStack = () => {
   return (
@@ -33,6 +34,7 @@ const HomeStack = () => {
       <Stack.Screen name="AdsList" component={AdsList} />
       <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
       <Stack.Screen name="Shorts" component={Shorts} />
+      <Stack.Screen name="NetSpeedChecker" component={NetSpeedChecker} />
     </Stack.Navigator>
   );
 };

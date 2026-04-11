@@ -98,6 +98,12 @@ const HomeScreen = ({ navigation }: any) => {
     //   flag: 'oneMinute',
     // },
     {
+      title: 'Check Net Speed',
+      des: '',
+      screen: 'NetSpeedChecker',
+      flag: '',
+    },
+    {
       title: 'Get More Views In Multiple Tab',
       des: '',
       screen: 'PageWindow',
