@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorageServices from '../../helper/asyncStorageServices';
 import Header from '../../components/Header';
 import Colors from '../../resource/theme/color';
@@ -18,10 +21,18 @@ import { interstitial } from '../../components/Ads/adMethods';
 
 const { height, width } = Dimensions.get('window');
 const { scaleFont, scaleSize } = Mixins;
+
 const Shorts = ({ navigation }) => {
   const [history, setHistory] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
+
+  // ✅ Full usable height = screen - statusbar - bottom tab - safe area
+  const BOTTOM_TAB_HEIGHT = 65; // Apne tab bar ki height yahan dalo
+  const STATUS_BAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight ?? 24 : 0;
+  const SLIDE_HEIGHT = height - STATUS_BAR_HEIGHT - BOTTOM_TAB_HEIGHT - insets.bottom;
+
   useEffect(() => {
     loadHistory();
   }, [isFocused]);
@@ -46,25 +57,20 @@ const Shorts = ({ navigation }) => {
 
   const renderItem = useCallback(
     ({ item, index }) => (
-      <View style={styles.slide}>
+      // ✅ SLIDE_HEIGHT use ho raha hai har item mein
+      <View style={[styles.slide, { height: SLIDE_HEIGHT }]}>
         <WebView
           source={{ uri: item }}
           style={{ flex: 1 }}
           startInLoadingState
-          // Only render WebView for current ± 1 to save memory
           renderToHardwareTextureAndroid={Math.abs(index - currentIndex) <= 1}
         />
-        {/* <View style={styles.urlBadge}>
-          <Text numberOfLines={1} style={styles.urlBadgeText}>
-            {item}
-          </Text>
-        </View> */}
       </View>
     ),
-    [currentIndex],
+    [currentIndex, SLIDE_HEIGHT],
   );
 
-  // ads
+  // Ads
   useEffect(() => {
     interstitial.load();
   }, [isFocused]);
@@ -72,7 +78,7 @@ const Shorts = ({ navigation }) => {
   useEffect(() => {
     try {
       setTimeout(() => {
-        if (isFocused == true) {
+        if (isFocused) {
           (async () => {
             await interstitial.show();
           })();
@@ -82,8 +88,10 @@ const Shorts = ({ navigation }) => {
   }, [isFocused]);
 
   return (
+    // ✅ StatusBar transparent + edges se content sahi position mein aaye
     <View style={styles.container}>
-      {/* <Header title="Shorts" navigation={navigation} historyButton={false} /> */}
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+
       {history.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No history found</Text>
@@ -108,18 +116,20 @@ const Shorts = ({ navigation }) => {
           data={history}
           keyExtractor={(item, index) => `${item}-${index}`}
           renderItem={renderItem}
-          pagingEnabled // Snap each URL to full screen
+          pagingEnabled
           showsVerticalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
+          // ✅ getItemLayout mein bhi same SLIDE_HEIGHT
           getItemLayout={(_, index) => ({
-            length: height - 60, // 60 = Header height
-            offset: (height - 60) * index,
+            length: SLIDE_HEIGHT,
+            offset: SLIDE_HEIGHT * index,
             index,
           })}
-          initialScrollIndex={0} // Auto-select first URL
+          initialScrollIndex={0}
           maxToRenderPerBatch={2}
           windowSize={3}
+          decelerationRate="fast"  // ✅ Smooth snap scrolling
         />
       )}
     </View>
@@ -134,22 +144,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white(),
   },
   slide: {
-    height: height - 60, // Full screen minus header
     width: width,
-  },
-  urlBadge: {
-    position: 'absolute',
-    bottom: 16,
-    left: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  urlBadgeText: {
-    color: '#fff',
-    fontSize: 12,
+    // height yahan nahi — renderItem mein dynamically set hoti hai
   },
   empty: {
     flex: 1,
