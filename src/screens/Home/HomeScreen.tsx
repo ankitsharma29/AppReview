@@ -103,6 +103,12 @@ const HomeScreen = ({ navigation }: any) => {
       screen: 'NetSpeedChecker',
       flag: '',
     },
+    // {
+    //   title: 'Check Youtube Channel Details',
+    //   des: '',
+    //   screen: 'YouTubeChecker',
+    //   flag: '',
+    // },
     {
       title: 'Get More Views In Multiple Tab',
       des: '',
