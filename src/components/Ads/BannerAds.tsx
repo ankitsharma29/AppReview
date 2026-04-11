@@ -1,36 +1,40 @@
-import {View, Text} from 'react-native';
-import React from 'react';
-import {
-  RewardedAd,
-  RewardedAdEventType,
-  TestIds,
-  BannerAd,
-  BannerAdSize,
-} from 'react-native-google-mobile-ads';
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { TestIds, BannerAd } from 'react-native-google-mobile-ads';
+import { useIsFocused } from '@react-navigation/native';
 
-const BannerAds = ({adUnitId, BaneerSize}: any) => {
+const BannerAds = ({ adUnitId, BaneerSize }: any) => {
+  const isFocused = useIsFocused();
+  const [adLoaded, setAdLoaded] = useState(false); // ✅ Default hidden
+
   const adUnitId1 = __DEV__
     ? TestIds.BANNER
     : adUnitId ?? 'ca-app-pub-4293747280421578/4003804476';
+
+  if (!isFocused) return null;
+
   return (
-    <BannerAd
-      unitId={adUnitId1}
-      // size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-      size={BaneerSize ?? '390x180'}
-      onAdFailedToLoad={value => {
-        console.log('value', value);
-      }}
-      addStatusUpdateListener={true}
-      requestOptions={{
-        requestPersonalizedAdsOnly: true,
-      }}
-      onAdLoaded={value => {
-        console.log('onAdLoaded', value);
-      }}
-      onAdOpened={(value: any) => {
-        console.log('onAdOpened', value);
-      }}
-    />
+    // ✅ Ad load nahi hua toh height 0 — koi space nahi
+    <View style={{ height: adLoaded ? undefined : 0, overflow: 'hidden' }}>
+      <BannerAd
+        key={`banner-${isFocused}`}
+        unitId={adUnitId1}
+        size={BaneerSize ?? '390x180'}
+        onAdLoaded={() => {
+          setAdLoaded(true);  // ✅ Ad aaya — space show karo
+        }}
+        onAdFailedToLoad={value => {
+          setAdLoaded(false); // ✅ Ad fail — space hatao
+          console.log('Ad Failed:', value);
+        }}
+        // requestOptions={{
+        //   requestPersonalizedAdsOnly: true,
+        // }}
+        onAdOpened={(value: any) => {
+          console.log('onAdOpened', value);
+        }}
+      />
+    </View>
   );
 };
 

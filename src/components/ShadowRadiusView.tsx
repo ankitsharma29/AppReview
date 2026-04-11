@@ -38,7 +38,7 @@ const getStyles = () =>
   container: {
     padding: scaleSize(15),
     borderRadius: scaleSize(15),
-    backgroundColor:Colors.green9(),
+    backgroundColor:Colors.gradientTop(),
     borderColor: Colors.borderColor(),
     borderWidth: 0.5,
   },
