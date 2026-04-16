@@ -30,6 +30,8 @@ import FastImage from 'react-native-fast-image';
 import { AppImages } from '../../assets/constant';
 import Header from '../../components/Header';
 import AsyncStorageServices from '../../helper/asyncStorageServices';
+import { addShortsUrl } from '../../firebase/firebaseService';
+import Checkbox from '../../components/Checkbox';
 
 const adUnitId = __DEV__
   ? TestIds.REWARDED
@@ -138,6 +140,8 @@ const PageWindow = ({ navigation, route }: any) => {
 
     await AsyncStorageServices.setItem('urlHistory', JSON.stringify(history));
   };
+
+  const [checked, setChecked] = useState({ terms: false, newsletter: false });
   return (
     <View style={styles.containe}>
       <Header title={'Browser Screen'} navigation={navigation} />
@@ -217,11 +221,21 @@ const PageWindow = ({ navigation, route }: any) => {
                 style={styles.input}
               />
             </View>
+
+            <Checkbox
+              checked={checked.terms}
+              onChange={val => setChecked(prev => ({ ...prev, terms: val }))}
+              label="I agree to the add url in shorts feed."
+            />
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <TouchableOpacity
                 style={styles.buttonClick}
                 onPress={async () => {
                   saveHistory(value);
+                  if (checked.terms) {
+                    const trimmed = value.trim();
+                    addShortsUrl(trimmed);
+                  }
                   try {
                     console.log('CLICK');
                     if (windowScreen == 0 && Customevalue == 0) {
