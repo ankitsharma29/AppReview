@@ -1,5 +1,7 @@
 // ============================================================
-//  Shorts.jsx  —  Firebase integrated version
+//  Shorts.jsx  —  Firebase + Randomized feed version
+//  - subscribeShortsUrlsRandom: auto-shuffles on every Firestore update
+//  - reshuffleList(): manual reshuffle button (🔀)
 // ============================================================
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
@@ -23,8 +25,9 @@ import { useIsFocused } from '@react-navigation/native';
 
 import {
   addShortsUrl,
-  subscribeShortsUrls, // real-time listener — swaps with fetchShortsUrls if preferred
-} from '../../firebase/firebaseService'; // ← adjust path as needed
+  subscribeShortsUrlsRandom, // real-time + auto shuffle
+  shuffleArray, // for manual reshuffle
+} from '../../firebase/firebaseService'; // adjust path as needed
 
 import { interstitial } from '../../components/Ads/adMethods';
 import Colors from '../../resource/theme/color';
@@ -32,7 +35,7 @@ import Fonts from '../../resource/theme/font';
 import Mixins from '../../resource/mixins/appStyle';
 
 const { height, width } = Dimensions.get('window');
-const { scaleFont, scaleSize } = Mixins;
+const { scaleSize } = Mixins;
 
 const BOTTOM_TAB_HEIGHT = 65;
 const STATUS_BAR_HEIGHT =
@@ -49,23 +52,38 @@ const Shorts = ({ navigation }) => {
   const [inputUrl, setInputUrl] = useState('');
   const [adding, setAdding] = useState(false);
 
+  // Keep original list from Firebase for manual reshuffle
+  const rawUrls = useRef([]);
+
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
+  const flatListRef = useRef(null);
 
   const SLIDE_HEIGHT =
     height - STATUS_BAR_HEIGHT - BOTTOM_TAB_HEIGHT - insets.bottom;
 
-  // ─── Firebase real-time subscription ──────
+  // ─── Firebase real-time subscription (auto-shuffled) ──
   useEffect(() => {
     setLoading(true);
 
-    // subscribeShortsUrls returns unsubscribe fn
-    const unsubscribe = subscribeShortsUrls(urls => {
-      setHistory(urls);
+    const unsubscribe = subscribeShortsUrlsRandom(shuffledUrls => {
+      rawUrls.current = shuffledUrls; // keep copy for manual reshuffle
+      setHistory(shuffledUrls);
+      setCurrentIndex(0);
       setLoading(false);
     });
 
-    return () => unsubscribe(); // cleanup on unmount
+    return () => unsubscribe();
+  }, []);
+
+  // ─── Manual reshuffle (without re-fetching Firebase) ──
+  const reshuffleList = useCallback(() => {
+    if (rawUrls.current.length === 0) return;
+    const reshuffled = shuffleArray(rawUrls.current);
+    setHistory(reshuffled);
+    setCurrentIndex(0);
+    // Scroll back to top
+    flatListRef.current?.scrollToIndex({ index: 0, animated: true });
   }, []);
 
   // ─── Add URL to Firebase ──────────────────
@@ -75,13 +93,12 @@ const Shorts = ({ navigation }) => {
       Alert.alert('Error', 'Please enter a valid URL');
       return;
     }
-
     try {
       setAdding(true);
-      await addShortsUrl(trimmed); // saves to Firestore
+      await addShortsUrl(trimmed);
       setInputUrl('');
       setModalVisible(false);
-      // subscribeShortsUrls listener auto-updates history ✅
+      // subscribeShortsUrlsRandom listener auto-updates + reshuffles
     } catch (err) {
       Alert.alert('Error', 'Failed to add URL. Try again.');
       console.error(err);
@@ -121,14 +138,12 @@ const Shorts = ({ navigation }) => {
   useEffect(() => {
     try {
       setTimeout(() => {
-        if (isFocused) {
-          (async () => await interstitial.show())();
-        }
+        if (isFocused) (async () => await interstitial.show())();
       }, 5000);
     } catch (_) {}
   }, [isFocused]);
 
-  // ─── Render ───────────────────────────────
+  // ─── Loading state ────────────────────────
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -138,6 +153,7 @@ const Shorts = ({ navigation }) => {
     );
   }
 
+  // ─── Render ───────────────────────────────
   return (
     <View style={styles.container}>
       <StatusBar
@@ -146,13 +162,23 @@ const Shorts = ({ navigation }) => {
         barStyle="dark-content"
       />
 
-      {/* ── Add URL FAB ── */}
+      {/* ── FAB: Add URL ── */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, styles.fabAdd]}
         onPress={() => setModalVisible(true)}
       >
         <Text style={styles.fabText}>＋</Text>
       </TouchableOpacity>
+
+      {/* ── FAB: Reshuffle ── */}
+      {history.length > 1 && (
+        <TouchableOpacity
+          style={[styles.fab, styles.fabShuffle]}
+          onPress={reshuffleList}
+        >
+          <Text style={styles.fabText}>🔀</Text>
+        </TouchableOpacity>
+      )}
 
       {/* ── Empty state ── */}
       {history.length === 0 ? (
@@ -176,7 +202,10 @@ const Shorts = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={history}
+          // key changes when history reshuffles — forces full re-render
+          key={history[0]}
           keyExtractor={(item, index) => `${item}-${index}`}
           renderItem={renderItem}
           pagingEnabled
@@ -289,11 +318,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: scaleSize(5),
   },
-  // FAB
+  // FABs
   fab: {
     position: 'absolute',
-    bottom: 80,
-    right: 20,
     zIndex: 99,
     width: 52,
     height: 52,
@@ -307,10 +334,18 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
+  fabAdd: {
+    bottom: 80,
+    right: 20,
+  },
+  fabShuffle: {
+    bottom: 145, // stacked above Add button
+    right: 20,
+  },
   fabText: {
     color: Colors.white(),
-    fontSize: 28,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 26,
   },
   // Modal
   modalOverlay: {
@@ -351,18 +386,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cancelBtn: {
-    backgroundColor: '#f2f2f2',
-  },
-  addBtn: {
-    backgroundColor: Colors.black(),
-  },
-  cancelText: {
-    color: '#555',
-    fontWeight: '500',
-  },
-  addText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  cancelBtn: { backgroundColor: '#f2f2f2' },
+  addBtn: { backgroundColor: Colors.black() },
+  cancelText: { color: '#555', fontWeight: '500' },
+  addText: { color: '#fff', fontWeight: '600' },
 });
