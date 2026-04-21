@@ -27,6 +27,7 @@ import {
   addShortsUrl,
   subscribeShortsUrlsRandom, // real-time + auto shuffle
   shuffleArray, // for manual reshuffle
+  deleteAllShorts
 } from '../../firebase/firebaseService'; // adjust path as needed
 
 import { interstitial } from '../../components/Ads/adMethods';
@@ -65,7 +66,7 @@ const Shorts = ({ navigation }) => {
   // ─── Firebase real-time subscription (auto-shuffled) ──
   useEffect(() => {
     setLoading(true);
-
+    // deleteAllShorts();
     const unsubscribe = subscribeShortsUrlsRandom(shuffledUrls => {
       rawUrls.current = shuffledUrls; // keep copy for manual reshuffle
       setHistory(shuffledUrls);

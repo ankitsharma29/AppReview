@@ -207,4 +207,20 @@ export const deleteShortsUrl = async docId => {
   }
 };
 
+export const deleteAllShorts = async () => {
+  try {
+    const snapshot = await getDocs(shortsRef());
+    console.log("snapshot",snapshot);
+    
+    const deletePromises = snapshot.docs.map(d =>
+      deleteDoc(doc(db, SHORTS_COLLECTION, d.id))
+    );
+
+    await Promise.all(deletePromises);
+
+    console.log("All shorts deleted successfully");
+  } catch (error) {
+    console.error("Error deleting all shorts:", error);
+  }
+};
 export { db, app };
