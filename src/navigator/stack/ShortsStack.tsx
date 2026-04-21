@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Shorts from '../../screens/Shorts/Shorts';
+import Content from '../../screens/Convert/Content';
 const Stack = createNativeStackNavigator();
 const ShortsStack = () => {
   return (
@@ -8,9 +9,10 @@ const ShortsStack = () => {
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName="Shorts"
+      initialRouteName="Content"
     >
       <Stack.Screen name="Shorts" component={Shorts} />
+      <Stack.Screen name="Content" component={Content} />
     </Stack.Navigator>
   );
 };
