@@ -9,7 +9,7 @@ const ShortsStack = () => {
       screenOptions={{
         headerShown: false,
       }}
-      initialRouteName="Content"
+      initialRouteName="Shorts"
     >
       <Stack.Screen name="Shorts" component={Shorts} />
       <Stack.Screen name="Content" component={Content} />

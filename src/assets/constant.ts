@@ -8,6 +8,7 @@ export {default as HomeIcon} from './svgs/home.svg';
 export {default as ShortsIcon} from './svgs/shorts.svg';
 export {default as HistoryIcon} from './svgs/historyIcon.svg';
 export {default as GameIcon} from './svgs/game.svg';
+export {default as ConvertIcon} from './svgs/convert.svg';
 
 export const AppImages = {
   MyName: require('./images/ankit.jpg'),

@@ -9,6 +9,7 @@ import { isIOS } from '../../helper/appUtils';
 import Mixins from '../../resource/mixins/appStyle';
 
 import {
+  ConvertIcon,
   GameIcon,
   History,
   HistoryIcon,
@@ -19,6 +20,7 @@ import HomeStack from '../stack/HomeStack';
 import ShortsStack from '../stack/ShortsStack';
 import HistoryStack from '../stack/HistoryStack';
 import GameStack from '../stack/GameStack';
+import ConvertStack from '../stack/ConvertStack';
 
 interface BottomTabProps {}
 
@@ -50,6 +52,14 @@ const BottomTab = (_props: BottomTabProps) => {
         <ShortsIcon width={30} height={30} fill={style.color} />
       ),
       title: 'Shorts',
+    },
+    {
+      name: 'Content',
+      component: ConvertStack,
+      icon: (style: any) => (
+        <ConvertIcon width={30} height={30} fill={style.color} />
+      ),
+      title: 'Convert',
     },
     {
       name: 'HistoryScreen',
