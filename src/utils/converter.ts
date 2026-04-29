@@ -1,8 +1,14 @@
 // src/utils/converter.ts
+import {Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import ImageResizer from 'react-native-image-resizer';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
+import {requestWritePermission} from './permissions';
+
+// ─── FIX 1: react-native-react-native-html-to-pdf has a broken default export in some
+// versions. Use require() so we get the actual native module regardless
+// of how the package exports itself.
+const RNHTMLtoPDF = require('react-native-html-to-pdf').default ?? require('react-native-html-to-pdf');
 
 export type ImageFormat = 'JPG' | 'PNG' | 'JPEG' | 'WEBP';
 
@@ -26,7 +32,7 @@ export interface ConvertResult {
 }
 
 // ─────────────────────────────────────────────
-// Format a byte count into a human-readable string
+// Helpers
 // ─────────────────────────────────────────────
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -34,16 +40,36 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-// ─────────────────────────────────────────────
-// Get file extension from URI or name
-// ─────────────────────────────────────────────
 export function getExtension(name: string): string {
-  return (name.split('.').pop() ?? '').toUpperCase();
+  return (name?.split('.').pop() ?? '').toUpperCase();
+}
+
+// Strip file:// — RNFS needs bare paths
+function stripScheme(uri: string): string {
+  return uri ? uri.replace(/^file:\/\/\//, '/').replace(/^file:\/\//, '') : '';
+}
+
+// Add file:// — Share / Image components need it
+function addScheme(path: string): string {
+  if (!path) return '';
+  return path.startsWith('file://') ? path : `file://${path}`;
+}
+
+// Platform-aware output directory
+function getOutputDir(): string {
+  if (Platform.OS === 'android') {
+    return (
+      RNFS.DownloadDirectoryPath ??
+      RNFS.ExternalStorageDirectoryPath ??
+      RNFS.DocumentDirectoryPath
+    );
+  }
+  // iOS: DocumentDirectory is visible in Files app (UIFileSharingEnabled)
+  return RNFS.DocumentDirectoryPath;
 }
 
 // ─────────────────────────────────────────────
-// Convert image to a different format using react-native-image-resizer
-// Quality: 0–100
+// Convert a single image to a different format
 // ─────────────────────────────────────────────
 export async function convertImage(
   file: ImageFile,
@@ -51,34 +77,51 @@ export async function convertImage(
   quality: number,
 ): Promise<ConvertResult> {
   try {
-    const rnFormat =
+    if (!file?.uri) throw new Error('Invalid file — no URI provided');
+
+    const rnFormat: 'JPEG' | 'PNG' | 'WEBP' =
       targetFormat === 'PNG' ? 'PNG' : targetFormat === 'WEBP' ? 'WEBP' : 'JPEG';
 
-    // Resizer re-encodes the image in the target format
-    const result = await ImageResizer.createResizedImage(
-      file.uri,
-      4096,      // max width  (keeps original if smaller)
-      4096,      // max height (keeps original if smaller)
-      rnFormat,
-      quality,
-      0,         // rotation
-      RNFS.CachesDirectoryPath,
-      false,
-      {mode: 'contain', onlyScaleDown: true},
-    );
+    // ── FIX 2: wrap ImageResizer call defensively ──────────────
+    let resized: {uri: string} | null = null;
+    try {
+      resized = await ImageResizer.createResizedImage(
+        addScheme(file.uri),
+        4096,
+        4096,
+        rnFormat,
+        quality,
+        0,
+        RNFS.CachesDirectoryPath,
+        false,
+        {mode: 'contain', onlyScaleDown: true},
+      );
+    } catch (resizerErr: any) {
+      throw new Error(`ImageResizer failed: ${resizerErr?.message ?? resizerErr}`);
+    }
+
+    // ── FIX 3: guard against undefined result from resizer ─────
+    if (!resized?.uri) {
+      throw new Error('ImageResizer returned no output URI');
+    }
 
     const ext = targetFormat === 'JPEG' ? 'jpg' : targetFormat.toLowerCase();
-    const outputName = file.name.replace(/\.[^.]+$/, `.${ext}`);
+    const baseName = file.name.replace(/\.[^.]+$/, '');
+    const outputName = `${baseName}.${ext}`;
     const destPath = `${RNFS.CachesDirectoryPath}/${Date.now()}_${outputName}`;
 
-    // Move from temp location to our cache path with proper name
-    await RNFS.moveFile(result.uri.replace('file://', ''), destPath);
+    const resizedPath = stripScheme(resized.uri);
 
+    // Verify the resizer actually wrote a file
+    const resizedExists = await RNFS.exists(resizedPath);
+    if (!resizedExists) throw new Error('ImageResizer output file not found on disk');
+
+    await RNFS.moveFile(resizedPath, destPath);
     const stat = await RNFS.stat(destPath);
 
     return {
       success: true,
-      outputUri: `file://${destPath}`,
+      outputUri: addScheme(destPath),
       outputName,
       outputSize: Number(stat.size),
     };
@@ -95,8 +138,7 @@ export async function convertImage(
 }
 
 // ─────────────────────────────────────────────
-// Convert multiple images into a single PDF
-// Uses react-native-htmltopdf which renders HTML → PDF natively
+// Convert multiple images → single PDF
 // ─────────────────────────────────────────────
 export async function imagesToPDF(
   files: ImageFile[],
@@ -104,90 +146,113 @@ export async function imagesToPDF(
   onProgress?: (pct: number) => void,
 ): Promise<ConvertResult> {
   try {
-    // Step 1 – encode each image as base64 so we can embed in HTML
-    const base64Images: string[] = [];
+    console.log("files",files);
+    
+    if (!files?.length) throw new Error('No files provided');
 
-    for (let i = 0; i < files.length; i++) {
-      const filePath = files[i].uri.replace('file://', '');
-      const b64 = await RNFS.readFile(filePath, 'base64');
-      const mime =
-        files[i].type === 'image/png'
-          ? 'image/png'
-          : files[i].type === 'image/webp'
-          ? 'image/webp'
-          : 'image/jpeg';
-      base64Images.push(`data:${mime};base64,${b64}`);
-      onProgress?.(Math.round(((i + 1) / files.length) * 70));
+    // ── FIX 4: verify RNHTMLtoPDF loaded correctly ─────────────
+    if (!RNHTMLtoPDF || typeof RNHTMLtoPDF.convert !== 'function') {
+      throw new Error(
+        'react-native-html-to-pdf native module not linked. ' +
+        'Run: cd android && ./gradlew clean, then rebuild.',
+      );
     }
 
-    // Step 2 – build an HTML string with one page per image
-    const pageHtml = base64Images
+    // Step 1 — Base64-encode each image
+    const base64Images: Array<{src: string; name: string}> = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+
+      // ── FIX 5: guard each file's URI before using it ──────────
+      if (!f?.uri) throw new Error(`File at index ${i} has no URI`);
+
+      const filePath = stripScheme(f.uri);
+      const exists = await RNFS.exists(filePath);
+      if (!exists) throw new Error(`File not found on disk: ${f.name} (${filePath})`);
+
+      const b64 = await RNFS.readFile(filePath, 'base64');
+      if (!b64) throw new Error(`Could not read file: ${f.name}`);
+
+      // Detect MIME type
+      let mime = 'image/jpeg';
+      const t = (f.type ?? '').toLowerCase();
+      if (t.includes('png')) mime = 'image/png';
+      else if (t.includes('webp')) mime = 'image/webp';
+      else if (t.includes('gif')) mime = 'image/gif';
+
+      // Detect from filename if type is missing/generic
+      const ext = getExtension(f.name).toLowerCase();
+      if (!t || t === 'image/*') {
+        if (ext === 'png') mime = 'image/png';
+        else if (ext === 'webp') mime = 'image/webp';
+        else if (ext === 'gif') mime = 'image/gif';
+      }
+
+      base64Images.push({src: `data:${mime};base64,${b64}`, name: f.name});
+      onProgress?.(Math.round(((i + 1) / files.length) * 60));
+    }
+
+    // Step 2 — Build HTML
+    const pagesHtml = base64Images
       .map(
-        (src, idx) => `
-        <div class="page">
-          <img src="${src}" />
-          <p class="label">Page ${idx + 1} / ${files.length} — ${files[idx].name}</p>
-        </div>`,
+        ({src, name}, idx) =>
+          `<div class="page">` +
+          `<span class="pg">${idx + 1} / ${files.length}</span>` +
+          `<img src="${src}" alt="Page ${idx + 1}"/>` +
+          `<span class="nm">${name}</span>` +
+          `</div>`,
       )
       .join('');
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8"/>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { background: #fff; font-family: Helvetica, sans-serif; }
-            .page {
-              width: 100%;
-              page-break-after: always;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              padding: 20px;
-              min-height: 100vh;
-            }
-            .page:last-child { page-break-after: auto; }
-            img {
-              max-width: 100%;
-              max-height: 90vh;
-              object-fit: contain;
-              display: block;
-            }
-            .label {
-              margin-top: 12px;
-              font-size: 10px;
-              color: #999;
-              text-align: center;
-            }
-          </style>
-        </head>
-        <body>${pageHtml}</body>
-      </html>`;
+    const html =
+      `<!DOCTYPE html><html><head><meta charset="utf-8"/>` +
+      `<style>` +
+      `*{margin:0;padding:0;box-sizing:border-box;}` +
+      `body{background:#fff;font-family:Helvetica,Arial,sans-serif;}` +
+      `.page{width:100%;min-height:100vh;display:flex;flex-direction:column;` +
+      `align-items:center;justify-content:center;padding:24px;` +
+      `page-break-after:always;position:relative;}` +
+      `.page:last-child{page-break-after:auto;}` +
+      `.pg{position:absolute;top:10px;right:14px;font-size:9px;color:#ccc;}` +
+      `img{max-width:100%;max-height:85vh;object-fit:contain;display:block;}` +
+      `.nm{margin-top:8px;font-size:9px;color:#bbb;text-align:center;}` +
+      `</style></head><body>${pagesHtml}</body></html>`;
 
-    onProgress?.(80);
+    onProgress?.(70);
 
-    // Step 3 – render HTML → PDF
-    const pdfResult = await RNHTMLtoPDF.convert({
-      html,
-      fileName: `ImageConverter_${Date.now()}`,
-      directory: 'Documents',
-      base64: false,
-    });
+    // Step 3 — Render HTML → PDF
+    const fileName = `ImageConverter_${Date.now()}`;
 
-    onProgress?.(95);
+    let pdfResult: {filePath?: string | null} | null = null;
+    try {
+      pdfResult = await RNHTMLtoPDF.convert({
+        html,
+        fileName,
+        directory: 'Documents',
+        base64: false,
+      });
+    } catch (pdfErr: any) {
+      throw new Error(`PDF render failed: ${pdfErr?.message ?? pdfErr}`);
+    }
 
-    if (!pdfResult.filePath) throw new Error('PDF path missing');
+    onProgress?.(90);
 
-    const stat = await RNFS.stat(pdfResult.filePath);
+    // ── FIX 6: thorough null-check on pdfResult ───────────────
+    if (!pdfResult) throw new Error('RNHTMLtoPDF.convert returned null');
+    if (!pdfResult.filePath) throw new Error('PDF was created but filePath is missing');
+
+    const pdfPath = pdfResult.filePath;
+    const pdfExists = await RNFS.exists(pdfPath);
+    if (!pdfExists) throw new Error(`PDF file not found at path: ${pdfPath}`);
+
+    const stat = await RNFS.stat(pdfPath);
     onProgress?.(100);
 
     return {
       success: true,
-      outputUri: `file://${pdfResult.filePath}`,
-      outputName: `converted_${files.length}_images.pdf`,
+      outputUri: addScheme(pdfPath),
+      outputName: `converted_${files.length}pages_${Date.now()}.pdf`,
       outputSize: Number(stat.size),
     };
   } catch (err: any) {
@@ -203,37 +268,64 @@ export async function imagesToPDF(
 }
 
 // ─────────────────────────────────────────────
-// Share / download a file via the native share sheet
+// Save file to Downloads / Documents
+// ─────────────────────────────────────────────
+export async function saveToDownloads(
+  uri: string,
+  name: string,
+): Promise<string> {
+  if (!uri) throw new Error('No URI provided to save');
+
+  const canWrite = await requestWritePermission();
+  if (!canWrite) throw new Error('Storage write permission denied');
+
+  const srcPath = stripScheme(uri);
+  const srcExists = await RNFS.exists(srcPath);
+  if (!srcExists) throw new Error(`Source file not found: ${srcPath}`);
+
+  const destDir = getOutputDir();
+  const dirExists = await RNFS.exists(destDir);
+  if (!dirExists) await RNFS.mkdir(destDir);
+
+  // Collision-safe filename
+  let destPath = `${destDir}/${name}`;
+  const collision = await RNFS.exists(destPath);
+  if (collision) {
+    const dotIdx = name.lastIndexOf('.');
+    const base = dotIdx > 0 ? name.slice(0, dotIdx) : name;
+    const ext = dotIdx > 0 ? name.slice(dotIdx) : '';
+    destPath = `${destDir}/${base}_${Date.now()}${ext}`;
+  }
+
+  await RNFS.copyFile(srcPath, destPath);
+
+  // Android: trigger MediaStore scan so file appears in Files/Gallery
+  if (Platform.OS === 'android') {
+    try { await RNFS.scanFile(destPath); } catch { /* best-effort */ }
+  }
+
+  return destPath;
+}
+
+// ─────────────────────────────────────────────
+// Share via native share sheet
 // ─────────────────────────────────────────────
 export async function shareFile(
   uri: string,
   name: string,
   mimeType: string,
 ): Promise<void> {
-  try {
-    await Share.open({
-      url: uri,
-      title: name,
-      type: mimeType,
-      failOnCancel: false,
-    });
-  } catch (err) {
-    console.error('shareFile error:', err);
-    throw err;
-  }
-}
+  if (!uri) throw new Error('No URI provided to share');
 
-// ─────────────────────────────────────────────
-// Save file to Downloads / Documents folder
-// ─────────────────────────────────────────────
-export async function saveToDownloads(
-  uri: string,
-  name: string,
-): Promise<string> {
-  const src = uri.replace('file://', '');
-  const destDir =
-    RNFS.DownloadDirectoryPath ?? RNFS.DocumentDirectoryPath;
-  const dest = `${destDir}/${name}`;
-  await RNFS.copyFile(src, dest);
-  return dest;
+  const srcPath = stripScheme(uri);
+  const exists = await RNFS.exists(srcPath);
+  if (!exists) throw new Error(`File not found for sharing: ${srcPath}`);
+
+  await Share.open({
+    url: addScheme(srcPath),
+    title: name,
+    type: mimeType,
+    failOnCancel: false,
+    showAppsToView: true,
+  });
 }

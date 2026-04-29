@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider paths for react-native-share and file saving.
+  This file must live at:
+  android/app/src/main/res/xml/file_paths.xml
+-->
+<paths>
+  <!-- App-internal files (/data/data/<pkg>/files/) -->
+  <files-path name="internal_files" path="." />
+
+  <!-- App cache (/data/data/<pkg>/cache/) -->
+  <cache-path name="internal_cache" path="." />
+
+  <!-- External app-specific files (Android/data/<pkg>/files/) -->
+  <external-files-path name="external_app_files" path="." />
+
+  <!-- External app-specific cache (Android/data/<pkg>/cache/) -->
+  <external-cache-path name="external_app_cache" path="." />
+
+  <!-- Public Downloads folder -->
+  <external-path name="external_downloads" path="Download/" />
+
+  <!-- Root of external storage (needed for older Android) -->
+  <external-path name="external_root" path="." />
+</paths>

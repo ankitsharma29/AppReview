@@ -1,5 +1,5 @@
-// src/screens/HomeScreen.tsx
-import React, {useState, useCallback} from 'react';
+// src/screens/Content.tsx
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   StyleSheet,
   Alert,
   Platform,
-  FlatList,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-crop-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { requestPhotoPermission } from '../../utils/permissions';
 import {
   ImageFile,
   ImageFormat,
@@ -18,9 +18,8 @@ import {
   imagesToPDF,
   shareFile,
   saveToDownloads,
-  formatBytes,
-} from '../../utils/converter';
-import {COLORS, RADIUS, SPACING} from '../../utils/theme';
+} from  '../../utils/converter';
+import { COLORS, RADIUS, SPACING } from '../../utils/theme';
 import {
   AppButton,
   FormatChip,
@@ -30,7 +29,7 @@ import {
   Toggle,
 } from '../../components/UIComponents';
 import ImageCard from '../../ProgressBar/ImageCard';
-import ResultItem from '../../ProgressBar/ResultItem';
+import ResultItem from '../../ProgressBar/ImageCard';
 
 type Tab = 'convert' | 'pdf';
 
@@ -54,165 +53,203 @@ export default function Content() {
   const [results, setResults] = useState<Result[]>([]);
   const [totalConverted, setTotalConverted] = useState(0);
 
-  // ── Pick images from gallery ──────────────────────────────────
+  // Request permission on mount
+  useEffect(() => {
+    requestPhotoPermission();
+  }, []);
+
+  // Pick images from gallery
   const pickImages = useCallback(async () => {
-    try {
-      const picked = await launchImageLibrary({
+    const granted = await requestPhotoPermission();
+    if (!granted) return;
+
+    launchImageLibrary(
+      {
         mediaType: 'photo',
-        multiple: true,
+        selectionLimit: 0,
         includeBase64: false,
-      });
+        quality: 1,
+      },
+      response => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert(
+            'Picker Error',
+            response.errorMessage ?? 'Could not open image library',
+          );
+          return;
+        }
+        const assets = response.assets ?? [];
+        if (!assets.length) return;
 
-      if (!picked.assets?.length) return;
+        const newFiles: ImageFile[] = assets.map(asset => ({
+          id: Math.random().toString(36).slice(2) + Date.now(),
+          uri: asset.uri ?? '',
+          name: asset.fileName ?? `image_${Date.now()}.jpg`,
+          size: asset.fileSize ?? 0,
+          type: asset.type ?? 'image/jpeg',
+          status: 'ready',
+        }));
 
-      const newFiles: ImageFile[] = picked.assets.map(asset => ({
-        id: Math.random().toString(36).slice(2),
-        uri: asset.uri ?? '',
-        name: asset.fileName ?? `image_${Date.now()}.jpg`,
-        size: asset.fileSize ?? 0,
-        type: asset.type ?? 'image/jpeg',
-        status: 'ready',
-      }));
-
-      setFiles(prev => [...prev, ...newFiles]);
-      setResults([]);
-    } catch (err: any) {
-      if (!err?.message?.includes('cancelled')) {
-        Alert.alert('Error', 'Could not open image picker');
-      }
-    }
+        setFiles(prev => [...prev, ...newFiles]);
+        setResults([]);
+      },
+    );
   }, []);
 
   const removeFile = useCallback((id: string) => {
     setFiles(prev => prev.filter(f => f.id !== id));
   }, []);
 
-  // ── Convert images to selected format ────────────────────────
+  const clearAll = useCallback(() => {
+    setFiles([]);
+    setResults([]);
+    setProgress(0);
+  }, []);
+
+  // Main conversion logic
   const handleConvert = async () => {
     if (!files.length) return;
     setConverting(true);
     setProgress(0);
     setResults([]);
-
     const newResults: Result[] = [];
 
-    if (tab === 'pdf') {
-      // ─ PDF mode ─
-      setFiles(prev => prev.map(f => ({...f, status: 'converting'})));
-
-      const result = await imagesToPDF(files, quality, pct => {
-        setProgress(pct);
-      });
-
-      if (result.success) {
-        newResults.push({
-          id: 'pdf_' + Date.now(),
-          name: result.outputName,
-          uri: result.outputUri,
-          size: result.outputSize,
-          type: 'pdf',
-          mimeType: 'application/pdf',
-        });
-        setFiles(prev => prev.map(f => ({...f, status: 'done'})));
-        setTotalConverted(c => c + files.length);
-      } else {
-        Alert.alert('PDF Error', result.error ?? 'Failed to create PDF');
-        setFiles(prev => prev.map(f => ({...f, status: 'error'})));
-      }
-    } else {
-      // ─ Format convert mode ─
-      for (let i = 0; i < files.length; i++) {
-        const f = files[i];
-        setFiles(prev =>
-          prev.map(x => (x.id === f.id ? {...x, status: 'converting'} : x)),
+    try {
+      if (tab === 'pdf') {
+        setFiles(prev => prev.map(f => ({ ...f, status: 'converting' })));
+        const result = await imagesToPDF(files, quality, pct =>
+          setProgress(pct),
         );
 
-        const result = await convertImage(f, targetFormat, quality);
-        const pct = Math.round(((i + 1) / files.length) * 100);
-        setProgress(pct);
-
         if (result.success) {
-          const ext =
-            targetFormat === 'JPEG' ? 'jpg' : targetFormat.toLowerCase();
-          const outputName = autoRename
-            ? f.name.replace(/\.[^.]+$/, `.${ext}`)
-            : `converted_${i + 1}.${ext}`;
-
           newResults.push({
-            id: f.id,
-            name: outputName,
+            id: `pdf_${Date.now()}`,
+            name: result.outputName,
             uri: result.outputUri,
             size: result.outputSize,
-            type: 'image',
-            mimeType:
-              targetFormat === 'PNG'
-                ? 'image/png'
-                : targetFormat === 'WEBP'
-                ? 'image/webp'
-                : 'image/jpeg',
+            type: 'pdf',
+            mimeType: 'application/pdf',
           });
-
-          setFiles(prev =>
-            prev.map(x =>
-              x.id === f.id
-                ? {...x, status: 'done', outputUri: result.outputUri, outputSize: result.outputSize}
-                : x,
-            ),
-          );
+          setFiles(prev => prev.map(f => ({ ...f, status: 'done' })));
+          setTotalConverted(c => c + files.length);
         } else {
-          setFiles(prev =>
-            prev.map(x => (x.id === f.id ? {...x, status: 'error'} : x)),
-          );
+          Alert.alert('PDF Error', result.error ?? 'Failed to create PDF');
+          setFiles(prev => prev.map(f => ({ ...f, status: 'error' })));
         }
-      }
+      } else {
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          setFiles(prev =>
+            prev.map(x => (x.id === f.id ? { ...x, status: 'converting' } : x)),
+          );
 
-      setTotalConverted(c => c + newResults.length);
+          const result = await convertImage(f, targetFormat, quality);
+          setProgress(Math.round(((i + 1) / files.length) * 100));
+
+          if (result.success) {
+            const ext =
+              targetFormat === 'JPEG' ? 'jpg' : targetFormat.toLowerCase();
+            const outputName = autoRename
+              ? f.name.replace(/\.[^.]+$/, `.${ext}`)
+              : `converted_${i + 1}_${Date.now()}.${ext}`;
+
+            newResults.push({
+              id: f.id,
+              name: outputName,
+              uri: result.outputUri,
+              size: result.outputSize,
+              type: 'image',
+              mimeType:
+                targetFormat === 'PNG'
+                  ? 'image/png'
+                  : targetFormat === 'WEBP'
+                  ? 'image/webp'
+                  : 'image/jpeg',
+            });
+
+            setFiles(prev =>
+              prev.map(x =>
+                x.id === f.id
+                  ? {
+                      ...x,
+                      status: 'done',
+                      outputUri: result.outputUri,
+                      outputSize: result.outputSize,
+                    }
+                  : x,
+              ),
+            );
+          } else {
+            setFiles(prev =>
+              prev.map(x => (x.id === f.id ? { ...x, status: 'error' } : x)),
+            );
+          }
+        }
+        setTotalConverted(c => c + newResults.length);
+      }
+    } catch (err: any) {
+      Alert.alert('Unexpected Error', err?.message ?? 'Something went wrong');
     }
 
     setResults(newResults);
     setConverting(false);
   };
 
-  // ── Download / Share ──────────────────────────────────────────
   const handleSave = async (result: Result) => {
     try {
       const dest = await saveToDownloads(result.uri, result.name);
-      Alert.alert('Saved!', `File saved to:\n${dest}`);
-    } catch {
-      Alert.alert('Error', 'Could not save the file');
+      const shortPath = dest.split('/').slice(-3).join('/');
+      Alert.alert('✅ Saved!', `Saved to:\n…/${shortPath}`);
+    } catch (err: any) {
+      Alert.alert('Save Failed', err?.message ?? 'Could not save the file');
     }
   };
 
   const handleShare = async (result: Result) => {
     try {
       await shareFile(result.uri, result.name, result.mimeType);
-    } catch {
-      Alert.alert('Error', 'Could not share the file');
+    } catch (err: any) {
+      if (!String(err?.message).includes('cancel')) {
+        Alert.alert('Share Failed', err?.message ?? 'Could not share the file');
+      }
     }
   };
 
-  const handleDownloadAll = async () => {
+  const handleSaveAll = async () => {
     if (!results.length) return;
     let saved = 0;
+    const errors: string[] = [];
     for (const r of results) {
       try {
         await saveToDownloads(r.uri, r.name);
         saved++;
-      } catch {}
+      } catch (err: any) {
+        errors.push(err?.message ?? r.name);
+      }
     }
-    Alert.alert('Done', `${saved}/${results.length} files saved to Downloads`);
+    if (errors.length) {
+      Alert.alert(
+        'Partial Save',
+        `${saved}/${results.length} saved.\nFailed: ${errors.join(', ')}`,
+      );
+    } else {
+      Alert.alert(
+        '✅ All Saved!',
+        `${saved} file${saved !== 1 ? 's' : ''} saved to ${
+          Platform.OS === 'android' ? 'Downloads' : 'Files app'
+        }`,
+      );
+    }
   };
 
   const handleShareAll = async () => {
-    // Share first file + note if multiple
-    if (!results.length) return;
-    if (results.length === 1) {
-      await handleShare(results[0]);
-      return;
-    }
-    // For multiple files, share them one by one
     for (const r of results) {
-      await shareFile(r.uri, r.name, r.mimeType);
+      try {
+        await shareFile(r.uri, r.name, r.mimeType);
+      } catch {
+        // skip cancelled
+      }
     }
   };
 
@@ -221,14 +258,17 @@ export default function Content() {
     setFiles([]);
     setResults([]);
     setProgress(0);
-    if (t === 'pdf') setTargetFormat('PNG');
   };
 
   const convertBtnLabel = () => {
     if (converting) return `Converting… ${progress}%`;
     if (tab === 'pdf')
-      return `📄 Create PDF from ${files.length} image${files.length !== 1 ? 's' : ''}`;
-    return `🔄 Convert ${files.length} image${files.length !== 1 ? 's' : ''} → ${targetFormat}`;
+      return `📄 Create PDF  (${files.length} image${
+        files.length !== 1 ? 's' : ''
+      })`;
+    return `🔄 Convert to ${targetFormat}  (${files.length} image${
+      files.length !== 1 ? 's' : ''
+    })`;
   };
 
   return (
@@ -236,55 +276,60 @@ export default function Content() {
       style={styles.scroll}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled">
-
-      {/* ── Header ── */}
-      <View style={styles.headerBadge}>
-        <Text style={styles.headerBadgeTxt}>⚡ IMAGE STUDIO</Text>
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.badge}>
+        <Text style={styles.badgeTxt}>⚡ IMAGE STUDIO</Text>
       </View>
       <Text style={styles.title}>Image Converter</Text>
       <Text style={styles.subtitle}>JPG · PNG · JPEG · WEBP · PDF</Text>
 
-      {/* ── Stats ── */}
       <View style={styles.statsRow}>
         <StatCard value={totalConverted} label="Converted" />
         <StatCard value={files.length} label="Queued" />
         <StatCard value={results.length} label="Ready" />
       </View>
 
-      {/* ── Tabs ── */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabBtn, tab === 'convert' && styles.tabActive]}
           onPress={() => switchTab('convert')}
-          activeOpacity={0.8}>
-          <Text style={[styles.tabTxt, tab === 'convert' && styles.tabTxtActive]}>
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[styles.tabTxt, tab === 'convert' && styles.tabTxtActive]}
+          >
             🔄 Format Convert
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabBtn, tab === 'pdf' && styles.tabActive]}
           onPress={() => switchTab('pdf')}
-          activeOpacity={0.8}>
+          activeOpacity={0.8}
+        >
           <Text style={[styles.tabTxt, tab === 'pdf' && styles.tabTxtActive]}>
             📄 Image → PDF
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* ── Pick Images Button ── */}
       <TouchableOpacity
         style={styles.dropZone}
         onPress={pickImages}
-        activeOpacity={0.8}>
+        activeOpacity={0.8}
+      >
         <Text style={styles.dropIcon}>{tab === 'pdf' ? '🖼️' : '📂'}</Text>
         <Text style={styles.dropTitle}>Tap to choose images</Text>
         <Text style={styles.dropSub}>
           JPG · PNG · JPEG · WEBP · GIF supported
         </Text>
+        {files.length > 0 && (
+          <View style={styles.addMoreBadge}>
+            <Text style={styles.addMoreTxt}>+ Add more</Text>
+          </View>
+        )}
       </TouchableOpacity>
 
-      {/* ── Format selector (convert tab only) ── */}
       {tab === 'convert' && (
         <View style={styles.panel}>
           <SectionLabel text="Convert To" />
@@ -301,31 +346,34 @@ export default function Content() {
         </View>
       )}
 
-      {/* ── Image grid ── */}
       {files.length > 0 && (
-        <View style={styles.grid}>
-          {files.map(f => (
-            <ImageCard
-              key={f.id}
-              item={f}
-              onRemove={removeFile}
-            />
-          ))}
-        </View>
+        <>
+          <View style={styles.gridHeader}>
+            <Text style={styles.gridTitle}>
+              {files.length} image{files.length !== 1 ? 's' : ''} queued
+            </Text>
+            <TouchableOpacity onPress={clearAll}>
+              <Text style={styles.clearTxt}>Clear all</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.grid}>
+            {files.map(f => (
+              <ImageCard key={f.id} item={f} onRemove={removeFile} />
+            ))}
+          </View>
+        </>
       )}
 
-      {/* ── Options panel ── */}
       <View style={styles.panel}>
         <SectionLabel text="Options" />
-
         <View style={styles.optRow}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.optLabel}>Quality: {quality}%</Text>
-            <Text style={styles.optSub}>Higher = better quality, larger file</Text>
+            <Text style={styles.optSub}>
+              Higher = better quality, larger file
+            </Text>
           </View>
         </View>
-
-        {/* Custom slider using buttons */}
         <View style={styles.sliderRow}>
           {[10, 25, 50, 75, 90, 100].map(v => (
             <TouchableOpacity
@@ -337,33 +385,33 @@ export default function Content() {
                   backgroundColor: COLORS.accent,
                   borderColor: COLORS.accent,
                 },
-              ]}>
+              ]}
+            >
               <Text
                 style={[
                   styles.sliderBtnTxt,
-                  quality === v && {color: COLORS.white},
-                ]}>
+                  quality === v && { color: COLORS.white },
+                ]}
+              >
                 {v}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-
         <View style={styles.divider} />
-
         <View style={styles.optRow}>
           <View>
-            <Text style={styles.optLabel}>Auto-rename files</Text>
-            <Text style={styles.optSub}>Match extension to format</Text>
+            <Text style={styles.optLabel}>Auto-rename output files</Text>
+            <Text style={styles.optSub}>
+              Match filename extension to format
+            </Text>
           </View>
           <Toggle value={autoRename} onChange={setAutoRename} />
         </View>
       </View>
 
-      {/* ── Progress bar ── */}
       {converting && <ProgressBar value={progress} />}
 
-      {/* ── Convert button ── */}
       <AppButton
         label={convertBtnLabel()}
         onPress={handleConvert}
@@ -372,48 +420,43 @@ export default function Content() {
         style={styles.convertBtn}
       />
 
-      {/* ── Results panel ── */}
       {results.length > 0 && (
         <View style={styles.resultsPanel}>
           <View style={styles.resultsHeader}>
             <Text style={styles.resultsTick}>✅</Text>
             <Text style={styles.resultsTitle}>
-              Conversion Complete! {results.length} file{results.length !== 1 ? 's' : ''}
+              {results.length} file{results.length !== 1 ? 's' : ''} ready
             </Text>
           </View>
-
           {results.map(r => (
             <ResultItem
               key={r.id}
               name={r.name}
               size={r.size}
               type={r.type}
+              item={r}
               onSave={() => handleSave(r)}
               onShare={() => handleShare(r)}
             />
           ))}
-
-          {/* Download All */}
-          {results.length >= 1 && (
-            <View style={styles.allBtnsRow}>
-              <AppButton
-                label={`↓ Save All (${results.length})`}
-                onPress={handleDownloadAll}
-                variant="success"
-                style={styles.allBtn}
-              />
-              <AppButton
-                label="⬆ Share All"
-                onPress={handleShareAll}
-                variant="outline"
-                style={styles.allBtn}
-              />
-            </View>
-          )}
+          <View style={styles.allBtnsRow}>
+            <AppButton
+              label={`↓ Save All (${results.length})`}
+              onPress={handleSaveAll}
+              variant="success"
+              style={styles.allBtn}
+            />
+            <AppButton
+              label="⬆ Share All"
+              onPress={handleShareAll}
+              variant="outline"
+              style={styles.allBtn}
+            />
+          </View>
         </View>
       )}
 
-      {files.length === 0 && (
+      {files.length === 0 && results.length === 0 && (
         <Text style={styles.empty}>
           No images added yet — tap above to begin
         </Text>
@@ -423,11 +466,9 @@ export default function Content() {
 }
 
 const styles = StyleSheet.create({
-  scroll: {flex: 1, backgroundColor: COLORS.bg},
-  container: {padding: SPACING.md, paddingBottom: 60},
-
-  // Header
-  headerBadge: {
+  scroll: { flex: 1, backgroundColor: COLORS.bg },
+  container: { padding: SPACING.md, paddingBottom: 60 },
+  badge: {
     alignSelf: 'center',
     backgroundColor: 'rgba(124,106,247,0.15)',
     borderWidth: 1,
@@ -438,7 +479,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     marginTop: 8,
   },
-  headerBadgeTxt: {
+  badgeTxt: {
     color: COLORS.accent,
     fontSize: 10,
     fontFamily: 'Courier New',
@@ -459,15 +500,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier New',
     marginBottom: SPACING.lg,
   },
-
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: SPACING.md,
-  },
-
-  // Tabs
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: SPACING.md },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
@@ -484,35 +517,35 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
     alignItems: 'center',
   },
-  tabActive: {backgroundColor: COLORS.accent},
-  tabTxt: {color: COLORS.muted, fontSize: 13, fontWeight: '600'},
-  tabTxtActive: {color: COLORS.white},
-
-  // Drop zone
+  tabActive: { backgroundColor: COLORS.accent },
+  tabTxt: { color: COLORS.muted, fontSize: 13, fontWeight: '600' },
+  tabTxtActive: { color: COLORS.white },
   dropZone: {
     borderWidth: 2,
     borderColor: COLORS.border,
     borderStyle: 'dashed',
     borderRadius: RADIUS.lg,
-    padding: 40,
+    padding: 36,
     alignItems: 'center',
     backgroundColor: COLORS.surface,
     marginBottom: SPACING.md,
   },
-  dropIcon: {fontSize: 48, marginBottom: 10},
+  dropIcon: { fontSize: 44, marginBottom: 10 },
   dropTitle: {
     color: COLORS.text,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 6,
   },
-  dropSub: {
-    color: COLORS.muted,
-    fontSize: 12,
-    fontFamily: 'Courier New',
+  dropSub: { color: COLORS.muted, fontSize: 12, fontFamily: 'Courier New' },
+  addMoreBadge: {
+    marginTop: 10,
+    backgroundColor: 'rgba(124,106,247,0.15)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-
-  // Panel
+  addMoreTxt: { color: COLORS.accent, fontSize: 12, fontWeight: '600' },
   panel: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -521,24 +554,28 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginBottom: SPACING.md,
   },
-  chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
-
-  // Image grid
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  gridHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  gridTitle: { color: COLORS.muted, fontSize: 12, fontFamily: 'Courier New' },
+  clearTxt: { color: COLORS.accent2, fontSize: 12, fontWeight: '600' },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
   },
-
-  // Options
   optRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
   },
-  optLabel: {color: COLORS.text, fontSize: 13, fontWeight: '600'},
+  optLabel: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
   optSub: {
     color: COLORS.muted,
     fontSize: 11,
@@ -567,16 +604,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier New',
     fontWeight: '600',
   },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 4,
-  },
-
-  // Convert button
-  convertBtn: {marginBottom: SPACING.md},
-
-  // Results
+  divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 4 },
+  convertBtn: { marginBottom: SPACING.md },
   resultsPanel: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
@@ -591,20 +620,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: SPACING.sm,
   },
-  resultsTick: {fontSize: 18},
-  resultsTitle: {
-    color: COLORS.success,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  allBtnsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: SPACING.md,
-  },
-  allBtn: {flex: 1},
-
-  // Empty
+  resultsTick: { fontSize: 18 },
+  resultsTitle: { color: COLORS.success, fontSize: 14, fontWeight: '700' },
+  allBtnsRow: { flexDirection: 'row', gap: 10, marginTop: SPACING.md },
+  allBtn: { flex: 1 },
   empty: {
     textAlign: 'center',
     color: COLORS.muted,

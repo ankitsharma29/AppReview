@@ -18,16 +18,18 @@ interface Props {
 }
 
 export default function ImageCard({item, onRemove, onDownload}: Props) {
+  console.log("item",item,item?.uri);
+  
   return (
     <View style={styles.card}>
-      <Image source={{uri: item.uri}} style={styles.thumb} resizeMode="cover" />
+      <Image source={{uri: item?.uri}} style={styles.thumb} resizeMode="cover" />
 
       {/* Top overlay */}
       <View style={styles.topRow}>
-        <StatusBadge status={item.status} />
+        <StatusBadge status={item?.status} />
         <TouchableOpacity
           style={styles.removeBtn}
-          onPress={() => onRemove(item.id)}
+          onPress={() => onRemove(item?.id)}
           hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
           <Text style={styles.removeTxt}>✕</Text>
         </TouchableOpacity>
@@ -36,15 +38,15 @@ export default function ImageCard({item, onRemove, onDownload}: Props) {
       {/* Info */}
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
-          {item.name}
+          {item?.name}
         </Text>
         <Text style={styles.meta}>
-          {formatBytes(item.size)} · {getExtension(item.name)}
+          {formatBytes(item?.size)} · {getExtension(item?.name)}
         </Text>
       </View>
 
       {/* Download button when done */}
-      {item.status === 'done' && item.outputUri && onDownload && (
+      {item?.status === 'done' && item.outputUri && onDownload && (
         <TouchableOpacity
           style={styles.dlBtn}
           onPress={() => onDownload(item)}
