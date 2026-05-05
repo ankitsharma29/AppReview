@@ -1,7 +1,10 @@
 // ============================================================
 //  firebaseService.js
-//  Firebase setup + Shorts URL — add / fetch / delete methods
-//  Includes Fisher-Yates shuffle for randomized playback
+//  Firebase setup + Shorts URL
+//  Includes:
+//    - Cursor-based pagination (startAfter)
+//    - Fisher-Yates shuffle per page
+//    - add / delete / real-time methods
 // ============================================================
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
@@ -14,13 +17,15 @@ import {
   doc,
   query,
   orderBy,
+  limit,
+  startAfter,
   serverTimestamp,
   onSnapshot,
+  getCountFromServer,
 } from 'firebase/firestore';
 
 // ─────────────────────────────────────────────
-//  STEP 1 — Paste your Firebase project config
-//  (Firebase Console → Project Settings → Your apps)
+//  STEP 1 — Your Firebase config
 // ─────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyCdRkrhSNlh_O7WwR8DMB7ZzGFjDcxJLwo",
@@ -33,24 +38,23 @@ const firebaseConfig = {
 };
 
 // ─────────────────────────────────────────────
-//  STEP 2 — Initialize Firebase (safe singleton)
+//  STEP 2 — Init Firebase singleton
 // ─────────────────────────────────────────────
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+const db  = getFirestore(app);
 
 // ─────────────────────────────────────────────
-//  Collection reference
+//  Config
 // ─────────────────────────────────────────────
 const SHORTS_COLLECTION = 'shortsUrls';
-const shortsRef = () => collection(db, SHORTS_COLLECTION);
+const PAGE_SIZE         = 10;             // URLs loaded per page
+const shortsRef         = () => collection(db, SHORTS_COLLECTION);
 
 // ─────────────────────────────────────────────
 //  Fisher-Yates Shuffle
 //  Returns a NEW shuffled array, never mutates original
-//
-//  shuffleArray(['a','b','c','d']) => ['c','a','d','b']
 // ─────────────────────────────────────────────
-export const shuffleArray = array => {
+export const shuffleArray = (array) => {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -61,17 +65,18 @@ export const shuffleArray = array => {
 
 // ─────────────────────────────────────────────
 //  ADD a Shorts URL
-//  await addShortsUrl('https://youtube.com/shorts/abc123');
+//
+//  await addShortsUrl('https://youtube.com/shorts/abc');
 //  Returns: { id, url, createdAt }
 // ─────────────────────────────────────────────
-export const addShortsUrl = async url => {
+export const addShortsUrl = async (url) => {
   try {
     if (!url || typeof url !== 'string') throw new Error('Invalid URL');
     const docRef = await addDoc(shortsRef(), {
-      url: url.trim(),
+      url:       url.trim(),
       createdAt: serverTimestamp(),
     });
-    console.log('[Firebase] Shorts URL added:', docRef.id);
+    console.log('[Firebase] Added:', docRef.id);
     return { id: docRef.id, url, createdAt: new Date() };
   } catch (error) {
     console.error('[Firebase] addShortsUrl error:', error);
@@ -80,56 +85,129 @@ export const addShortsUrl = async url => {
 };
 
 // ─────────────────────────────────────────────
-//  FETCH all Shorts URLs — ordered (latest first)
-//  Returns: string[]
+//  PAGINATED FETCH — page 1 (no cursor)
+//
+//  const { urls, lastDoc, hasMore } = await fetchShortsPage();
+//
+//  Returns:
+//    urls    : string[]          — shuffled batch
+//    lastDoc : DocumentSnapshot  — cursor for next page
+//    hasMore : boolean           — false when all loaded
 // ─────────────────────────────────────────────
-export const fetchShortsUrls = async () => {
+export const fetchShortsPage = async (lastDocument = null) => {
   try {
-    const q = query(shortsRef(), orderBy('createdAt', 'desc'));
+    let q = query(
+      shortsRef(),
+      orderBy('createdAt', 'desc'),
+      limit(PAGE_SIZE),
+    );
+
+    // If cursor provided, start after last fetched doc
+    if (lastDocument) {
+      q = query(
+        shortsRef(),
+        orderBy('createdAt', 'desc'),
+        startAfter(lastDocument),
+        limit(PAGE_SIZE),
+      );
+    }
+
     const snapshot = await getDocs(q);
-    const urls = snapshot.docs.map(d => d.data().url);
-    console.log('[Firebase] Fetched Shorts URLs:', urls.length);
-    return urls;
+    const docs     = snapshot.docs;
+    const urls     = shuffleArray(docs.map((d) => d.data().url));  // shuffle each batch
+
+    console.log(
+      `[Firebase] Page fetched: ${urls.length} URLs`,
+      lastDocument ? '(next page)' : '(first page)',
+    );
+
+    return {
+      urls,
+      lastDoc: docs.length > 0 ? docs[docs.length - 1] : null,  // cursor for next call
+      hasMore: docs.length === PAGE_SIZE,                         // false = end of list
+    };
   } catch (error) {
-    console.error('[Firebase] fetchShortsUrls error:', error);
+    console.error('[Firebase] fetchShortsPage error:', error);
     throw error;
   }
 };
 
 // ─────────────────────────────────────────────
-//  FETCH Shorts URLs — RANDOMIZED every call
+//  TOTAL COUNT (optional — for progress display)
 //
-//  Fetches all docs then Fisher-Yates shuffles them.
-//  Every call returns a DIFFERENT order — great for
-//  Shorts style feed where order should feel fresh.
-//
-//  const urls = await fetchShortsUrlsRandom();
-//  Returns: string[] (shuffled)
+//  const total = await getShortsCount();
 // ─────────────────────────────────────────────
-export const fetchShortsUrlsRandom = async () => {
+export const getShortsCount = async () => {
   try {
-    const snapshot = await getDocs(shortsRef());
-    const urls = snapshot.docs.map(d => d.data().url);
-    const shuffled = shuffleArray(urls);
-    console.log('[Firebase] Fetched & shuffled:', shuffled.length, 'URLs');
-    return shuffled;
+    const snap = await getCountFromServer(shortsRef());
+    return snap.data().count;
   } catch (error) {
-    console.error('[Firebase] fetchShortsUrlsRandom error:', error);
-    throw error;
+    console.error('[Firebase] getShortsCount error:', error);
+    return 0;
   }
 };
 
 // ─────────────────────────────────────────────
-//  FETCH with doc IDs (useful for delete operations)
+//  REAL-TIME listener — first page only (ordered)
+//  For live-update of the top feed while user watches
+//
+//  const unsub = subscribeShortsUrls((urls) => setHistory(urls));
+//  return () => unsub();
+// ─────────────────────────────────────────────
+export const subscribeShortsUrls = (callback, pageSize = PAGE_SIZE) => {
+  const q = query(
+    shortsRef(),
+    orderBy('createdAt', 'desc'),
+    limit(pageSize),
+  );
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const urls = snapshot.docs.map((d) => d.data().url);
+      console.log('[Firebase] Real-time update:', urls.length, 'URLs');
+      callback(urls);
+    },
+    (error) => console.error('[Firebase] subscribeShortsUrls error:', error),
+  );
+  return unsubscribe;
+};
+
+// ─────────────────────────────────────────────
+//  REAL-TIME listener — RANDOMIZED (first page)
+//
+//  const unsub = subscribeShortsUrlsRandom((urls) => setHistory(urls));
+//  return () => unsub();
+// ─────────────────────────────────────────────
+export const subscribeShortsUrlsRandom = (callback, pageSize = PAGE_SIZE) => {
+  const q = query(
+    shortsRef(),
+    orderBy('createdAt', 'desc'),
+    limit(pageSize),
+  );
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const urls     = snapshot.docs.map((d) => d.data().url);
+      const shuffled = shuffleArray(urls);
+      console.log('[Firebase] Real-time shuffled:', shuffled.length, 'URLs');
+      callback(shuffled);
+    },
+    (error) => console.error('[Firebase] subscribeShortsUrlsRandom error:', error),
+  );
+  return unsubscribe;
+};
+
+// ─────────────────────────────────────────────
+//  FETCH with doc IDs (useful for delete)
 //  Returns: Array<{ id, url, createdAt }>
 // ─────────────────────────────────────────────
 export const fetchShortsWithIds = async () => {
   try {
-    const q = query(shortsRef(), orderBy('createdAt', 'desc'));
+    const q        = query(shortsRef(), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({
-      id: d.id,
-      url: d.data().url,
+    return snapshot.docs.map((d) => ({
+      id:        d.id,
+      url:       d.data().url,
       createdAt: d.data().createdAt?.toDate?.() ?? null,
     }));
   } catch (error) {
@@ -139,65 +217,10 @@ export const fetchShortsWithIds = async () => {
 };
 
 // ─────────────────────────────────────────────
-//  REAL-TIME listener — ordered (latest first)
-//
-//  const unsub = subscribeShortsUrls((urls) => setHistory(urls));
-//  return () => unsub();  // cleanup
-//
-//  Returns: unsubscribe function
-// ─────────────────────────────────────────────
-export const subscribeShortsUrls = callback => {
-  const q = query(shortsRef(), orderBy('createdAt', 'desc'));
-  const unsubscribe = onSnapshot(
-    q,
-    snapshot => {
-      const urls = snapshot.docs.map(d => d.data().url);
-      console.log('[Firebase] Real-time update:', urls.length, 'URLs');
-      callback(urls);
-    },
-    error => {
-      console.error('[Firebase] subscribeShortsUrls error:', error);
-    },
-  );
-  return unsubscribe;
-};
-
-// ─────────────────────────────────────────────
-//  REAL-TIME listener — RANDOMIZED on every update
-//
-//  Every Firestore change (add/delete) triggers a
-//  fresh Fisher-Yates shuffle — feed order stays random.
-//
-//  const unsub = subscribeShortsUrlsRandom((urls) => setHistory(urls));
-//  return () => unsub();
-//
-//  Returns: unsubscribe function
-// ─────────────────────────────────────────────
-export const subscribeShortsUrlsRandom = callback => {
-  const unsubscribe = onSnapshot(
-    shortsRef(),
-    snapshot => {
-      const urls = snapshot.docs.map(d => d.data().url);
-      const shuffled = shuffleArray(urls);
-      console.log(
-        '[Firebase] Real-time shuffled update:',
-        shuffled.length,
-        'URLs',
-      );
-      callback(shuffled);
-    },
-    error => {
-      console.error('[Firebase] subscribeShortsUrlsRandom error:', error);
-    },
-  );
-  return unsubscribe;
-};
-
-// ─────────────────────────────────────────────
 //  DELETE a Shorts URL by document ID
 //  await deleteShortsUrl('docId123');
 // ─────────────────────────────────────────────
-export const deleteShortsUrl = async docId => {
+export const deleteShortsUrl = async (docId) => {
   try {
     await deleteDoc(doc(db, SHORTS_COLLECTION, docId));
     console.log('[Firebase] Deleted doc:', docId);
@@ -206,10 +229,20 @@ export const deleteShortsUrl = async docId => {
     throw error;
   }
 };
+export const deleteCollection = async () => {
+  const snapshot = await getDocs(collection(db, "shortsUrls"));
+
+  const promises = snapshot.docs.map(d => deleteDoc(d.ref));
+
+  await Promise.all(promises);
+
+  console.log("Collection deleted");
+};
 
 export const deleteAllShorts = async () => {
   try {
     const snapshot = await getDocs(shortsRef());
+    console.log("shortsRef",shortsRef);
     console.log("snapshot",snapshot);
     
     const deletePromises = snapshot.docs.map(d =>
@@ -223,4 +256,4 @@ export const deleteAllShorts = async () => {
     console.error("Error deleting all shorts:", error);
   }
 };
-export { db, app };
+export { db, app, PAGE_SIZE };
