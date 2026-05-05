@@ -1,8 +1,15 @@
 // src/utils/converter.ts
 //
-// PDF is built with a hand-written pure-JS PDF binary writer.
-// No native PDF library needed — zero linking issues.
-// Only RNFS (react-native-fs) is used to write the final .pdf file.
+// PDF generation strategy:
+//   1. Convert every image → JPEG via ImageResizer
+//   2. Read JPEG as base64 → decode to byte array
+//   3. Parse JPEG header to get real width/height
+//   4. Write a proper PDF 1.4 file:
+//        - Each JPEG is embedded as a raw binary stream with /DCTDecode
+//        - Written to disk via RNFS.writeFile with 'base64' encoding
+//        - The PDF bytes are built as a number[] array, then base64-encoded
+//
+// No react-native-htmltopdf, no native PDF module needed.
 
 import {Platform} from 'react-native';
 import RNFS from 'react-native-fs';
@@ -32,7 +39,7 @@ export interface ConvertResult {
 }
 
 // ─────────────────────────────────────────────
-// URI / path helpers
+// Helpers
 // ─────────────────────────────────────────────
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -44,18 +51,14 @@ export function getExtension(name: string): string {
   return (name.split('.').pop() ?? '').toUpperCase();
 }
 
-/** Strip file:// so RNFS gets a plain absolute path */
 function stripScheme(uri: string): string {
   if (!uri) return '';
-  // Handle both file:///abs/path  and  file://abs/path
   return uri.replace(/^file:\/\/\//, '/').replace(/^file:\/\//, '');
 }
 
-/** Add file:// so React Native Image / Share components work */
 function addScheme(path: string): string {
   if (!path) return '';
-  if (path.startsWith('file://')) return path;
-  return `file://${path}`;
+  return path.startsWith('file://') ? path : `file://${path}`;
 }
 
 function getOutputDir(): string {
@@ -66,11 +69,313 @@ function getOutputDir(): string {
       RNFS.DocumentDirectoryPath
     );
   }
-  return RNFS.DocumentDirectoryPath; // visible via Files app on iOS
+  return RNFS.DocumentDirectoryPath;
 }
 
 // ─────────────────────────────────────────────
-// Convert image format via ImageResizer
+// base64 ↔ byte array helpers
+// (pure JS, no Buffer needed)
+// ─────────────────────────────────────────────
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/** Decode a base64 string to a Uint8Array */
+function b64ToBytes(b64: string): Uint8Array {
+  const clean = b64.replace(/[^A-Za-z0-9+/]/g, '');
+  const len = Math.floor((clean.length * 3) / 4);
+  const out = new Uint8Array(len);
+  let j = 0;
+  for (let i = 0; i < clean.length; i += 4) {
+    const a = B64_CHARS.indexOf(clean[i]);
+    const b = B64_CHARS.indexOf(clean[i + 1]);
+    const c = B64_CHARS.indexOf(clean[i + 2] ?? 'A');
+    const d = B64_CHARS.indexOf(clean[i + 3] ?? 'A');
+    out[j++] = (a << 2) | (b >> 4);
+    if (clean[i + 2] && clean[i + 2] !== '=') out[j++] = ((b & 0xf) << 4) | (c >> 2);
+    if (clean[i + 3] && clean[i + 3] !== '=') out[j++] = ((c & 3) << 6) | d;
+  }
+  return out.slice(0, j);
+}
+
+/** Encode a Uint8Array to base64 */
+function bytesToB64(bytes: Uint8Array): string {
+  let b64 = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i];
+    const b1 = bytes[i + 1] ?? 0;
+    const b2 = bytes[i + 2] ?? 0;
+    b64 += B64_CHARS[b0 >> 2];
+    b64 += B64_CHARS[((b0 & 3) << 4) | (b1 >> 4)];
+    b64 += i + 1 < bytes.length ? B64_CHARS[((b1 & 0xf) << 2) | (b2 >> 6)] : '=';
+    b64 += i + 2 < bytes.length ? B64_CHARS[b2 & 0x3f] : '=';
+  }
+  return b64;
+}
+
+/** Append an ASCII string to a byte array */
+function appendStr(arr: number[], s: string): void {
+  for (let i = 0; i < s.length; i++) {
+    arr.push(s.charCodeAt(i) & 0xff);
+  }
+}
+
+/** Append a Uint8Array to a byte array */
+function appendBytes(arr: number[], bytes: Uint8Array): void {
+  for (let i = 0; i < bytes.length; i++) {
+    arr.push(bytes[i]);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Parse JPEG dimensions from raw bytes
+// ─────────────────────────────────────────────
+function parseJpegDimensions(bytes: Uint8Array): {w: number; h: number} {
+  // Scan for SOF0 (0xFFC0), SOF1 (0xFFC1), SOF2 (0xFFC2) markers
+  for (let i = 2; i < bytes.length - 8; i++) {
+    if (bytes[i] === 0xff) {
+      const marker = bytes[i + 1];
+      if (marker >= 0xc0 && marker <= 0xc3) {
+        // SOF marker: [FF][Cx][len_hi][len_lo][precision][height_hi][height_lo][width_hi][width_lo]
+        const h = (bytes[i + 5] << 8) | bytes[i + 6];
+        const w = (bytes[i + 7] << 8) | bytes[i + 8];
+        if (w > 0 && h > 0) return {w, h};
+      }
+    }
+  }
+  return {w: 800, h: 600}; // safe fallback
+}
+
+// ─────────────────────────────────────────────
+// Scale dimensions to fit A4 with margin
+// ─────────────────────────────────────────────
+const PAGE_W = 595;   // A4 width in PDF points  (72pt = 1 inch)
+const PAGE_H = 842;   // A4 height in PDF points
+const MARGIN = 40;    // 40pt ≈ 14mm margin on each side
+
+function fitToPage(w: number, h: number): {x: number; y: number; pw: number; ph: number} {
+  const maxW = PAGE_W - MARGIN * 2;
+  const maxH = PAGE_H - MARGIN * 2;
+  const scale = Math.min(maxW / w, maxH / h, 1); // never upscale
+  const pw = Math.round(w * scale);
+  const ph = Math.round(h * scale);
+  const x = Math.round(MARGIN + (maxW - pw) / 2);
+  const y = Math.round(MARGIN + (maxH - ph) / 2);
+  return {x, y, pw, ph};
+}
+
+// ─────────────────────────────────────────────
+// Core PDF binary builder
+// Writes a valid PDF 1.4 with raw JPEG streams.
+// Returns: Uint8Array of the complete PDF file.
+// ─────────────────────────────────────────────
+function buildPDF(jpegs: Array<{bytes: Uint8Array; w: number; h: number}>): Uint8Array {
+  const out: number[] = [];       // accumulates raw bytes
+  const xrefOffsets: number[] = []; // byte offset of each PDF object
+
+  function str(s: string) { appendStr(out, s); }
+  function raw(b: Uint8Array) { appendBytes(out, b); }
+  function pos() { return out.length; }
+
+  function startObj(n: number) {
+    xrefOffsets[n] = pos();
+    str(`${n} 0 obj\n`);
+  }
+  function endObj() { str('\nendobj\n'); }
+
+  // ── PDF header ────────────────────────────────────────────
+  str('%PDF-1.4\n');
+  // Binary comment to signal binary file to viewers
+  str('%\xFF\xFE\xFD\xFC\n');
+
+  const n = jpegs.length;
+
+  // Object layout:
+  //  1         → Catalog
+  //  2         → Pages
+  //  3+i*3     → Image XObject for page i
+  //  3+i*3+1   → Content stream for page i
+  //  3+i*3+2   → Page object for page i
+
+  const CATALOG  = 1;
+  const PAGES    = 2;
+  const imgObj   = (i: number) => 3 + i * 3;
+  const contObj  = (i: number) => 3 + i * 3 + 1;
+  const pageObj  = (i: number) => 3 + i * 3 + 2;
+  const totalObj = 3 + n * 3;
+
+  // ── Object 1: Catalog ─────────────────────────────────────
+  startObj(CATALOG);
+  str(`<< /Type /Catalog /Pages ${PAGES} 0 R >>`);
+  endObj();
+
+  // ── Object 2: Pages ──────────────────────────────────────
+  startObj(PAGES);
+  const kids = Array.from({length: n}, (_, i) => `${pageObj(i)} 0 R`).join(' ');
+  str(`<< /Type /Pages /Kids [${kids}] /Count ${n} >>`);
+  endObj();
+
+  // ── Per-page objects ──────────────────────────────────────
+  for (let i = 0; i < n; i++) {
+    const {bytes, w, h} = jpegs[i];
+    const {x, y, pw, ph} = fitToPage(w, h);
+
+    // ── Image XObject (raw JPEG bytes, DCTDecode) ─────────
+    startObj(imgObj(i));
+    str(
+      `<< /Type /XObject /Subtype /Image\n` +
+      `/Width ${w} /Height ${h}\n` +
+      `/ColorSpace /DeviceRGB\n` +
+      `/BitsPerComponent 8\n` +
+      `/Filter /DCTDecode\n` +
+      `/Length ${bytes.length}\n` +
+      `>>\n` +
+      `stream\n`,
+    );
+    raw(bytes);             // ← raw JPEG bytes embedded directly
+    str('\nendstream');
+    endObj();
+
+    // ── Content stream: draw the image ────────────────────
+    const cs = `q\n${pw} 0 0 ${ph} ${x} ${y} cm\n/Im${i} Do\nQ\n`;
+    startObj(contObj(i));
+    str(`<< /Length ${cs.length} >>\nstream\n${cs}endstream`);
+    endObj();
+
+    // ── Page dictionary ───────────────────────────────────
+    startObj(pageObj(i));
+    str(
+      `<< /Type /Page /Parent ${PAGES} 0 R\n` +
+      `/MediaBox [0 0 ${PAGE_W} ${PAGE_H}]\n` +
+      `/Resources << /XObject << /Im${i} ${imgObj(i)} 0 R >> >>\n` +
+      `/Contents ${contObj(i)} 0 R\n` +
+      `>>`,
+    );
+    endObj();
+  }
+
+  // ── xref table ────────────────────────────────────────────
+  const xrefPos = pos();
+  str(`xref\n0 ${totalObj + 1}\n`);
+  str('0000000000 65535 f \n');
+  for (let n = 1; n <= totalObj; n++) {
+    str(`${String(xrefOffsets[n] ?? 0).padStart(10, '0')} 00000 n \n`);
+  }
+
+  // ── Trailer ───────────────────────────────────────────────
+  str(
+    `trailer\n<< /Size ${totalObj + 1} /Root ${CATALOG} 0 R >>\n` +
+    `startxref\n${xrefPos}\n%%EOF\n`,
+  );
+
+  return new Uint8Array(out);
+}
+
+// ─────────────────────────────────────────────
+// Convert images → PDF  (public API)
+// ─────────────────────────────────────────────
+export async function imagesToPDF(
+  files: ImageFile[],
+  quality: number,
+  onProgress?: (pct: number) => void,
+): Promise<ConvertResult> {
+  try {
+    if (!files?.length) throw new Error('No files provided');
+
+    onProgress?.(5);
+
+    const jpegs: Array<{bytes: Uint8Array; w: number; h: number}> = [];
+    const tempPaths: string[] = [];
+
+    // Step 1 — Convert every image to JPEG and read bytes
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!f?.uri) throw new Error(`File ${i} has no URI`);
+
+      let jpegPath = stripScheme(f.uri);
+
+      // Re-encode as JPEG so we always have a clean DCT-compressed JPEG
+      // regardless of the original format (PNG/WEBP/GIF/HEIC etc.)
+      try {
+        const resized = await ImageResizer.createResizedImage(
+          addScheme(f.uri),
+          2048,     // max dimension — keeps PDF file size manageable
+          2048,
+          'JPEG',
+          Math.max(quality, 60), // minimum 60 quality for readable PDFs
+          0,
+          RNFS.CachesDirectoryPath,
+          false,
+          {mode: 'contain', onlyScaleDown: true},
+        );
+        if (resized?.uri) {
+          jpegPath = stripScheme(resized.uri);
+          tempPaths.push(jpegPath);
+        }
+      } catch (e: any) {
+        console.warn(`ImageResizer failed for ${f.name}, using original:`, e?.message);
+        // fall through — use original URI as-is
+      }
+
+      if (!(await RNFS.exists(jpegPath))) {
+        throw new Error(`Image file not found on disk: ${f.name}`);
+      }
+
+      const b64 = await RNFS.readFile(jpegPath, 'base64');
+      if (!b64?.length) throw new Error(`Could not read image: ${f.name}`);
+
+      const bytes = b64ToBytes(b64);
+      const {w, h} = parseJpegDimensions(bytes);
+
+      jpegs.push({bytes, w, h});
+
+      onProgress?.(5 + Math.round(((i + 1) / files.length) * 70));
+    }
+
+    onProgress?.(80);
+
+    // Step 2 — Build PDF bytes
+    const pdfBytes = buildPDF(jpegs);
+
+    onProgress?.(90);
+
+    // Step 3 — Write to cache as base64
+    const fileName = `ImageConverter_${Date.now()}.pdf`;
+    const outPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+    const pdfB64 = bytesToB64(pdfBytes);
+    await RNFS.writeFile(outPath, pdfB64, 'base64');
+
+    // Clean up temp JPEGs
+    for (const p of tempPaths) {
+      try { await RNFS.unlink(p); } catch {}
+    }
+
+    if (!(await RNFS.exists(outPath))) {
+      throw new Error('PDF was not written to disk');
+    }
+
+    const stat = await RNFS.stat(outPath);
+    onProgress?.(100);
+
+    return {
+      success: true,
+      outputUri: addScheme(outPath),
+      outputName: `images_to_pdf_${files.length}pages_${Date.now()}.pdf`,
+      outputSize: Number(stat.size),
+    };
+  } catch (err: any) {
+    console.error('imagesToPDF error:', err);
+    return {
+      success: false,
+      outputUri: '',
+      outputName: '',
+      outputSize: 0,
+      error: err?.message ?? 'PDF creation failed',
+    };
+  }
+}
+
+// ─────────────────────────────────────────────
+// Convert a single image format
 // ─────────────────────────────────────────────
 export async function convertImage(
   file: ImageFile,
@@ -123,467 +428,18 @@ export async function convertImage(
     };
   } catch (err: any) {
     console.error('convertImage error:', err);
-    return {success: false, outputUri: '', outputName: '', outputSize: 0, error: err?.message};
-  }
-}
-
-// ═════════════════════════════════════════════════════════════════
-// Pure-JS PDF builder
-// Builds a valid PDF binary from base64 JPEG images.
-// No native module — works on Android and iOS with zero setup.
-// ═════════════════════════════════════════════════════════════════
-
-// A4 page size in PDF user units (1 pt = 1/72 inch)
-const PAGE_W = 595.28;
-const PAGE_H = 841.89;
-const MARGIN = 36; // 0.5 inch
-
-/** Encode a JS string to PDF-safe bytes (Latin-1 passthrough) */
-function enc(s: string): string {
-  return s;
-}
-
-/** Calculate image dimensions that fit inside the printable area, preserving aspect ratio */
-function fitImage(imgW: number, imgH: number): {w: number; h: number} {
-  const maxW = PAGE_W - MARGIN * 2;
-  const maxH = PAGE_H - MARGIN * 2;
-  const ratio = Math.min(maxW / imgW, maxH / imgH, 1);
-  return {w: Math.round(imgW * ratio), h: Math.round(imgH * ratio)};
-}
-
-/**
- * Read image dimensions from JPEG/PNG base64 without any native code.
- * Falls back to A4 minus margin if parsing fails.
- */
-function getImageDimensions(b64: string, mime: string): {w: number; h: number} {
-  try {
-    const bytes = _b64ToBytes(b64.slice(0, 256)); // only need header bytes
-    if (mime.includes('png') && bytes.length >= 24) {
-      const w = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
-      const h = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
-      if (w > 0 && h > 0) return fitImage(w, h);
-    }
-    if (mime.includes('jpeg') || mime.includes('jpg')) {
-      // SOF0/SOF2 markers
-      const raw = _b64ToBytes(b64.slice(0, 1024));
-      for (let i = 2; i < raw.length - 8; i++) {
-        if (raw[i] === 0xff && (raw[i + 1] === 0xc0 || raw[i + 1] === 0xc2)) {
-          const h = (raw[i + 5] << 8) | raw[i + 6];
-          const w = (raw[i + 7] << 8) | raw[i + 8];
-          if (w > 0 && h > 0) return fitImage(w, h);
-        }
-      }
-    }
-  } catch {
-    // fall through
-  }
-  return {w: PAGE_W - MARGIN * 2, h: PAGE_H - MARGIN * 2};
-}
-
-function _b64ToBytes(b64: string): number[] {
-  const bin = global.atob ? global.atob(b64) : Buffer.from(b64, 'base64').toString('binary');
-  return Array.from(bin).map(c => c.charCodeAt(0));
-}
-
-/**
- * Build a valid multi-page PDF binary string from an array of JPEG base64 images.
- * Returns the raw PDF as a base64 string (ready to write with RNFS.writeFile).
- */
-function buildPdfBase64(
-  images: Array<{b64: string; mime: string; name: string}>,
-): string {
-  // We embed each image as an XObject and place it on its own page.
-  // All offsets are tracked for the xref table.
-
-  const parts: string[] = [];
-  let offset = 0;
-  const offsets: number[] = []; // byte offset of each object
-
-  function push(s: string) {
-    parts.push(s);
-    offset += s.length;
-  }
-
-  function objStart(n: number) {
-    offsets[n] = offset;
-    push(`${n} 0 obj\n`);
-  }
-  function objEnd() {
-    push('endobj\n');
-  }
-
-  // ── Object 1: Catalog ──────────────────────────────────────
-  const catalog = 1;
-  const pages = 2;
-  const firstImg = 3; // objects 3, 3+2, 3+4 … = image streams
-  // Each image needs 2 objects: the image XObject + the page
-  const imgObjStride = 2; // imgXObj at (firstImg + i*stride), page at (firstImg + i*stride + 1)
-  const count = images.length;
-  const pageObjIds = images.map((_, i) => firstImg + i * imgObjStride + 1);
-  const imgObjIds = images.map((_, i) => firstImg + i * imgObjStride);
-
-  // Header
-  push('%PDF-1.4\n%\xFF\xFF\xFF\xFF\n');
-
-  // Catalog
-  objStart(catalog);
-  push(`<< /Type /Catalog /Pages ${pages} 0 R >>\n`);
-  objEnd();
-
-  // Pages
-  objStart(pages);
-  const kidsRef = pageObjIds.map(id => `${id} 0 R`).join(' ');
-  push(`<< /Type /Pages /Kids [${kidsRef}] /Count ${count} >>\n`);
-  objEnd();
-
-  // Per-image objects
-  for (let i = 0; i < count; i++) {
-    const {b64, mime, name} = images[i];
-    const imgId = imgObjIds[i];
-    const pageId = pageObjIds[i];
-
-    // Decode base64 → raw bytes length
-    // PDF wants the raw byte length of the image data
-    const rawLen = Math.floor((b64.length * 3) / 4) -
-      (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0);
-
-    // Image dimensions for layout
-    const {w: imgW, h: imgH} = getImageDimensions(b64, mime);
-    const x = MARGIN + (PAGE_W - MARGIN * 2 - imgW) / 2;
-    const y = MARGIN + (PAGE_H - MARGIN * 2 - imgH) / 2;
-
-    const colorSpace = mime.includes('png') ? '/DeviceRGB' : '/DeviceRGB';
-    const filter = mime.includes('png') ? '/FlateDecode' : '/DCTDecode';
-
-    // ── Image XObject ──────────────────────────────────────
-    objStart(imgId);
-    push(
-      `<< /Type /XObject /Subtype /Image\n` +
-      `/Width ${imgW} /Height ${imgH}\n` +
-      `/ColorSpace ${colorSpace}\n` +
-      `/BitsPerComponent 8\n` +
-      `/Filter ${filter}\n` +
-      `/Length ${rawLen}\n>>\nstream\n`,
-    );
-    // Embed raw image bytes as base64 — we will decode at write time
-    // We store a marker here and replace during final assembly
-    push(`__IMG_${i}__`);
-    push('\nendstream\n');
-    objEnd();
-
-    // ── Page ──────────────────────────────────────────────
-    objStart(pageId);
-    const contentStream =
-      `q\n${imgW} 0 0 ${imgH} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im${i} Do\nQ\n`;
-    const csLen = contentStream.length;
-
-    push(
-      `<< /Type /Page /Parent ${pages} 0 R\n` +
-      `/MediaBox [0 0 ${PAGE_W} ${PAGE_H}]\n` +
-      `/Resources << /XObject << /Im${i} ${imgId} 0 R >> >>\n` +
-      `/Contents ${pageId + count * imgObjStride + i + 1} 0 R\n>>\n`,
-      // We'll add content stream objects after all pages
-    );
-    objEnd();
-  }
-
-  // ── Content stream objects (one per page) ──────────────────
-  const contentObjStart = firstImg + count * imgObjStride;
-  for (let i = 0; i < count; i++) {
-    const {w: imgW, h: imgH} = getImageDimensions(images[i].b64, images[i].mime);
-    const x = MARGIN + (PAGE_W - MARGIN * 2 - imgW) / 2;
-    const y = MARGIN + (PAGE_H - MARGIN * 2 - imgH) / 2;
-    const cs = `q\n${imgW} 0 0 ${imgH} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im${i} Do\nQ\n`;
-
-    objStart(contentObjStart + i);
-    push(`<< /Length ${cs.length} >>\nstream\n${cs}endstream\n`);
-    objEnd();
-  }
-
-  // ── xref table ────────────────────────────────────────────
-  const xrefOffset = offset;
-  const totalObjs = contentObjStart + count; // last object number + 1
-  push(`xref\n0 ${totalObjs + 1}\n`);
-  push('0000000000 65535 f \n');
-  for (let n = 1; n <= totalObjs; n++) {
-    const off = offsets[n] ?? 0;
-    push(`${String(off).padStart(10, '0')} 00000 n \n`);
-  }
-
-  // ── Trailer ───────────────────────────────────────────────
-  push(
-    `trailer\n<< /Size ${totalObjs + 1} /Root ${catalog} 0 R >>\n` +
-    `startxref\n${xrefOffset}\n%%EOF\n`,
-  );
-
-  // ── Assemble & replace image markers with raw bytes ───────
-  let pdf = parts.join('');
-
-  // Replace __IMG_i__ markers with actual decoded bytes
-  // Since we're writing base64 to RNFS, we build a final base64 string
-  // by splitting around the markers and inserting raw base64 chunks.
-  // The trick: in a PDF stream, we embedded DCTDecode/FlateDecode filter,
-  // so the stream content IS the raw image bytes.
-  // We'll build the final file as a Uint8Array manually for correctness.
-
-  // ── Simpler approach: build PDF as text, embed images as ASCII85 ──
-  // Actually, the cleanest approach for React Native (no Buffer issues)
-  // is to write a PDF where each image stream is base64-encoded inline
-  // using the ASCIIHexDecode filter. This is valid PDF 1.4.
-
-  return buildPdfBase64_Simple(images);
-}
-
-/**
- * Simple, reliable PDF builder using ASCIIHexDecode filter.
- * Each image is stored as hex in the PDF stream.
- * Produces valid PDF 1.4 files that open in all PDF readers.
- */
-function buildPdfBase64_Simple(
-  images: Array<{b64: string; mime: string; name: string}>,
-): string {
-  const lines: string[] = [];
-
-  const addLine = (s: string) => lines.push(s);
-
-  addLine('%PDF-1.4');
-
-  const objOffsets: {[id: number]: number} = {};
-  let byteCount = '%PDF-1.4\n'.length;
-
-  const objLines: Array<{id: number; body: string[]}> = [];
-
-  function makeObj(id: number, body: string[]) {
-    objLines.push({id, body});
-  }
-
-  const n = images.length;
-  // Object IDs:
-  //   1 = Catalog
-  //   2 = Pages
-  //   3+i*2 = Image XObject for page i
-  //   3+i*2+1 = Page for page i
-  //   3+n*2+i = Content stream for page i
-
-  makeObj(1, [`<< /Type /Catalog /Pages 2 0 R >>`]);
-  const pageIds = images.map((_, i) => 3 + i * 2 + 1);
-  makeObj(2, [
-    `<< /Type /Pages /Count ${n}`,
-    `/Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}]`,
-    `>>`,
-  ]);
-
-  for (let i = 0; i < n; i++) {
-    const {b64, mime} = images[i];
-    const imgId = 3 + i * 2;
-    const pageId = 3 + i * 2 + 1;
-    const contentId = 3 + n * 2 + i;
-
-    // Convert base64 → hex string (ASCIIHex)
-    const hexData = b64ToHex(b64) + '>';
-
-    // Use ASCIIHexDecode so we don't need to deal with binary in the PDF string
-    const colorSpace = mime.includes('png') ? '/DeviceRGB' : '/DeviceRGB';
-    // For PNG we use FlateDecode but the data is JPEG-compressed PNG…
-    // Safest: always re-encode as JPEG via ImageResizer (done upstream),
-    // so here we always use DCTDecode.
-    const filter = '[/ASCIIHexDecode /DCTDecode]';
-
-    makeObj(imgId, [
-      `<< /Type /XObject /Subtype /Image`,
-      `/Width 1 /Height 1`,
-      `/ColorSpace ${colorSpace}`,
-      `/BitsPerComponent 8`,
-      `/Filter ${filter}`,
-      `/Length ${hexData.length}`,
-      `>>`,
-      `stream`,
-      hexData,
-      `endstream`,
-    ]);
-
-    // Image dimensions: read from b64 header
-    const {w: imgW, h: imgH} = getImageDimensions(b64, mime);
-    const x = (MARGIN + (PAGE_W - MARGIN * 2 - imgW) / 2).toFixed(2);
-    const y = (MARGIN + (PAGE_H - MARGIN * 2 - imgH) / 2).toFixed(2);
-
-    // Content stream: place image
-    const cs = `q\n${imgW} 0 0 ${imgH} ${x} ${y} cm\n/Im${i} Do\nQ`;
-    makeObj(contentId, [
-      `<< /Length ${cs.length} >>`,
-      `stream`,
-      cs,
-      `endstream`,
-    ]);
-
-    makeObj(pageId, [
-      `<< /Type /Page /Parent 2 0 R`,
-      `/MediaBox [0 0 ${PAGE_W} ${PAGE_H}]`,
-      `/Resources << /XObject << /Im${i} ${imgId} 0 R >> >>`,
-      `/Contents ${contentId} 0 R`,
-      `>>`,
-    ]);
-  }
-
-  // Sort objects by ID for correct xref
-  objLines.sort((a, b) => a.id - b.id);
-
-  // Render objects and track offsets
-  const rendered: string[] = ['%PDF-1.4\n'];
-  let pos = '%PDF-1.4\n'.length;
-  const xrefOffsets: {[id: number]: number} = {};
-
-  for (const obj of objLines) {
-    xrefOffsets[obj.id] = pos;
-    const header = `${obj.id} 0 obj\n`;
-    const footer = `\nendobj\n`;
-    const body = obj.body.join('\n');
-    const chunk = header + body + footer;
-    rendered.push(chunk);
-    pos += chunk.length;
-  }
-
-  // xref
-  const xrefPos = pos;
-  const maxId = Math.max(...objLines.map(o => o.id));
-  const xrefHeader = `xref\n0 ${maxId + 1}\n`;
-  const xrefFree = '0000000000 65535 f \n';
-  let xrefBody = xrefFree;
-  for (let id = 1; id <= maxId; id++) {
-    const off = xrefOffsets[id] ?? 0;
-    xrefBody += `${String(off).padStart(10, '0')} 00000 n \n`;
-  }
-  const trailer =
-    `trailer\n<< /Size ${maxId + 1} /Root 1 0 R >>\n` +
-    `startxref\n${xrefPos}\n%%EOF`;
-
-  rendered.push(xrefHeader + xrefBody + trailer);
-
-  const pdfText = rendered.join('');
-
-  // Encode final PDF text to base64 for RNFS.writeFile
-  // Since the PDF is ASCII-safe (hex-encoded images), btoa works fine.
-  try {
-    return global.btoa
-      ? global.btoa(unescape(encodeURIComponent(pdfText)))
-      : Buffer.from(pdfText).toString('base64');
-  } catch {
-    return Buffer.from(pdfText, 'latin1').toString('base64');
-  }
-}
-
-/** Convert a base64 string to uppercase hex string (for ASCIIHexDecode) */
-function b64ToHex(b64: string): string {
-  // Decode base64 to binary string, then convert each byte to hex
-  const binStr = global.atob
-    ? global.atob(b64)
-    : Buffer.from(b64, 'base64').toString('binary');
-  let hex = '';
-  for (let i = 0; i < binStr.length; i++) {
-    hex += binStr.charCodeAt(i).toString(16).padStart(2, '0').toUpperCase();
-  }
-  return hex;
-}
-
-// ─────────────────────────────────────────────
-// Public: Convert images → PDF
-// ─────────────────────────────────────────────
-export async function imagesToPDF(
-  files: ImageFile[],
-  quality: number,
-  onProgress?: (pct: number) => void,
-): Promise<ConvertResult> {
-  try {
-    if (!files?.length) throw new Error('No files provided');
-
-    onProgress?.(5);
-
-    // Step 1 — Read each image as base64
-    const imageData: Array<{b64: string; mime: string; name: string}> = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      if (!f?.uri) throw new Error(`File ${i} has no URI`);
-
-      // First convert every image to JPEG for maximum PDF compatibility.
-      // (PNG/WEBP can have alpha channels which confuse DCTDecode.)
-      let jpegPath: string;
-      try {
-        const resized = await ImageResizer.createResizedImage(
-          addScheme(f.uri),
-          2048, // cap at 2048px for PDF size
-          2048,
-          'JPEG',
-          quality,
-          0,
-          RNFS.CachesDirectoryPath,
-          false,
-          {mode: 'contain', onlyScaleDown: true},
-        );
-        if (!resized?.uri) throw new Error('resizer returned no uri');
-        jpegPath = stripScheme(resized.uri);
-      } catch (e: any) {
-        // If resizing fails, try to use original
-        jpegPath = stripScheme(f.uri);
-      }
-
-      if (!(await RNFS.exists(jpegPath))) {
-        throw new Error(`Image file not found: ${f.name}`);
-      }
-
-      const b64 = await RNFS.readFile(jpegPath, 'base64');
-      if (!b64) throw new Error(`Could not read image: ${f.name}`);
-
-      imageData.push({b64, mime: 'image/jpeg', name: f.name});
-
-      // Clean up temp JPEG
-      try {
-        if (jpegPath !== stripScheme(f.uri)) await RNFS.unlink(jpegPath);
-      } catch {}
-
-      onProgress?.(5 + Math.round(((i + 1) / files.length) * 70));
-    }
-
-    onProgress?.(78);
-
-    // Step 2 — Build PDF (pure JS, no native module)
-    const pdfBase64 = buildPdfBase64_Simple(imageData);
-
-    onProgress?.(90);
-
-    // Step 3 — Write to disk
-    const fileName = `ImageConverter_${Date.now()}.pdf`;
-    const outPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-
-    await RNFS.writeFile(outPath, pdfBase64, 'base64');
-
-    if (!(await RNFS.exists(outPath))) {
-      throw new Error('PDF write failed — file not found after write');
-    }
-
-    const stat = await RNFS.stat(outPath);
-    onProgress?.(100);
-
-    return {
-      success: true,
-      outputUri: addScheme(outPath),
-      outputName: `converted_${files.length}pages_${Date.now()}.pdf`,
-      outputSize: Number(stat.size),
-    };
-  } catch (err: any) {
-    console.error('imagesToPDF error:', err);
     return {
       success: false,
       outputUri: '',
       outputName: '',
       outputSize: 0,
-      error: err?.message ?? 'PDF creation failed',
+      error: err?.message ?? 'Conversion failed',
     };
   }
 }
 
 // ─────────────────────────────────────────────
-// Save file to Downloads / Documents
+// Save to Downloads / Documents
 // ─────────────────────────────────────────────
 export async function saveToDownloads(uri: string, name: string): Promise<string> {
   if (!uri) throw new Error('No URI provided');
@@ -597,12 +453,11 @@ export async function saveToDownloads(uri: string, name: string): Promise<string
   const destDir = getOutputDir();
   if (!(await RNFS.exists(destDir))) await RNFS.mkdir(destDir);
 
-  // Collision-safe name
   let destPath = `${destDir}/${name}`;
   if (await RNFS.exists(destPath)) {
     const dot = name.lastIndexOf('.');
     const base = dot > 0 ? name.slice(0, dot) : name;
-    const ext = dot > 0 ? name.slice(dot) : '';
+    const ext  = dot > 0 ? name.slice(dot) : '';
     destPath = `${destDir}/${base}_${Date.now()}${ext}`;
   }
 
