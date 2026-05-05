@@ -1,7 +1,7 @@
 // src/utils/theme.ts
 
 export const COLORS = {
-  bg: '#0A0A12',
+  bg: '#161627',
   surface: '#111120',
   card: '#18182A',
   border: '#2C2C44',
