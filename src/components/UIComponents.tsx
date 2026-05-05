@@ -152,8 +152,8 @@ const STATUS_MAP = {
 export function StatusBadge({status}: {status: keyof typeof STATUS_MAP}) {
   const s = STATUS_MAP[status];
   return (
-    <View style={[styles.badge, {backgroundColor: s.bg}]}>
-      <Text style={[styles.badgeText, {color: s.color}]}>{s.text}</Text>
+    <View style={[styles.badge, {backgroundColor: s?.bg}]}>
+      <Text style={[styles.badgeText, {color: s?.color}]}>{s?.text}</Text>
     </View>
   );
 }

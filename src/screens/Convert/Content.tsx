@@ -18,7 +18,7 @@ import {
   imagesToPDF,
   shareFile,
   saveToDownloads,
-} from  '../../utils/converter';
+} from '../../utils/converter';
 import { COLORS, RADIUS, SPACING } from '../../utils/theme';
 import {
   AppButton,
@@ -29,7 +29,7 @@ import {
   Toggle,
 } from '../../components/UIComponents';
 import ImageCard from '../../ProgressBar/ImageCard';
-import ResultItem from '../../ProgressBar/ImageCard';
+import ResultItem from '../../ProgressBar/ResultItem';
 
 type Tab = 'convert' | 'pdf';
 
