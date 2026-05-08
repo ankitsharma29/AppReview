@@ -33,6 +33,7 @@ import {
   SectionLabel,
   StatusBadge,
 } from '../../components/UIComponents';
+import Header from '../../components/Header';
 
 // ─────────────────────────────────────────────
 // Preset target sizes
@@ -56,7 +57,7 @@ interface ResultEntry {
   finalQuality: number;
 }
 
-export default function ImageResizeScreen() {
+export default function ImageResizeScreen({ navigation }: any) {
   const [files, setFiles] = useState<ImageFileItem[]>([]);
   const [targetValue, setTargetValue] = useState('200');
   const [targetUnit, setTargetUnit] = useState<SizeUnit>('KB');
@@ -230,179 +231,186 @@ export default function ImageResizeScreen() {
 
   // ─────────────────────────────────────────────────────────────
   return (
-    <ScrollView
-      style={S.scroll}
-      contentContainerStyle={S.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={S.header}>
-        <Text style={S.headerIcon}>🗜️</Text>
-        <Text style={S.title}>Image Resizer</Text>
-        <Text style={S.subtitle}>Compress images to exact KB / MB</Text>
-      </View>
-
-      {/* Pick button */}
-      <TouchableOpacity
-        style={S.dropZone}
-        onPress={pickImages}
-        activeOpacity={0.8}
+    <>
+      <Header title={'Image Resizer'} navigation={navigation} />
+      <ScrollView
+        style={S.scroll}
+        contentContainerStyle={S.container}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={S.dropIcon}>📂</Text>
-        <Text style={S.dropTitle}>Tap to choose images</Text>
-        <Text style={S.dropSub}>JPG · PNG · JPEG · WEBP</Text>
-        {files.length > 0 && (
-          <View style={S.addBadge}>
-            <Text style={S.addTxt}>+ Add more</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {/* Target size section */}
-      <View style={S.panel}>
-        <SectionLabel text="Target File Size" />
-
-        {/* Presets */}
-        <View style={S.presets}>
-          {PRESETS.map((p, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[
-                S.presetBtn,
-                !customMode && selectedPreset === i && S.presetActive,
-              ]}
-              onPress={() => applyPreset(i)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  S.presetTxt,
-                  !customMode && selectedPreset === i && S.presetTxtActive,
-                ]}
-              >
-                {p.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Header */}
+        <View style={S.header}>
+          <Text style={S.headerIcon}>🗜️</Text>
+          <Text style={S.title}>Image Resizer</Text>
+          <Text style={S.subtitle}>Compress images to exact KB / MB</Text>
         </View>
 
-        {/* Custom input */}
+        {/* Pick button */}
         <TouchableOpacity
-          style={[S.customRow, customMode && S.customRowActive]}
-          onPress={() => setCustomMode(true)}
-          activeOpacity={0.9}
+          style={S.dropZone}
+          onPress={pickImages}
+          activeOpacity={0.8}
         >
-          <Text style={S.customLabel}>Custom:</Text>
-          <TextInput
-            style={S.customInput}
-            value={targetValue}
-            onChangeText={v => {
-              setTargetValue(v);
-              setCustomMode(true);
-            }}
-            keyboardType="decimal-pad"
-            placeholder="e.g. 350"
-            placeholderTextColor={COLORS.muted}
-            onFocus={() => setCustomMode(true)}
-          />
-          {/* Unit toggle */}
-          <View style={S.unitRow}>
-            {(['KB', 'MB'] as SizeUnit[]).map(u => (
+          <Text style={S.dropIcon}>📂</Text>
+          <Text style={S.dropTitle}>Tap to choose images</Text>
+          <Text style={S.dropSub}>JPG · PNG · JPEG · WEBP</Text>
+          {files.length > 0 && (
+            <View style={S.addBadge}>
+              <Text style={S.addTxt}>+ Add more</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Target size section */}
+        <View style={S.panel}>
+          <SectionLabel text="Target File Size" />
+
+          {/* Presets */}
+          <View style={S.presets}>
+            {PRESETS.map((p, i) => (
               <TouchableOpacity
-                key={u}
-                style={[S.unitBtn, targetUnit === u && S.unitActive]}
-                onPress={() => {
-                  setTargetUnit(u);
-                  setCustomMode(true);
-                }}
+                key={i}
+                style={[
+                  S.presetBtn,
+                  !customMode && selectedPreset === i && S.presetActive,
+                ]}
+                onPress={() => applyPreset(i)}
+                activeOpacity={0.7}
               >
-                <Text style={[S.unitTxt, targetUnit === u && S.unitTxtActive]}>
-                  {u}
+                <Text
+                  style={[
+                    S.presetTxt,
+                    !customMode && selectedPreset === i && S.presetTxtActive,
+                  ]}
+                >
+                  {p.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </TouchableOpacity>
 
-        <View style={S.targetDisplay}>
-          <Text style={S.targetLabel}>Target: </Text>
-          <Text style={S.targetValue}>
-            {targetValue || '0'} {targetUnit} ={' '}
-            {formatBytes(toBytes(parseFloat(targetValue) || 0, targetUnit))}
-          </Text>
-        </View>
-      </View>
+          {/* Custom input */}
+          <TouchableOpacity
+            style={[S.customRow, customMode && S.customRowActive]}
+            onPress={() => setCustomMode(true)}
+            activeOpacity={0.9}
+          >
+            <Text style={S.customLabel}>Custom:</Text>
+            <TextInput
+              style={S.customInput}
+              value={targetValue}
+              onChangeText={v => {
+                setTargetValue(v);
+                setCustomMode(true);
+              }}
+              keyboardType="decimal-pad"
+              placeholder="e.g. 350"
+              placeholderTextColor={COLORS.muted}
+              onFocus={() => setCustomMode(true)}
+            />
+            {/* Unit toggle */}
+            <View style={S.unitRow}>
+              {(['KB', 'MB'] as SizeUnit[]).map(u => (
+                <TouchableOpacity
+                  key={u}
+                  style={[S.unitBtn, targetUnit === u && S.unitActive]}
+                  onPress={() => {
+                    setTargetUnit(u);
+                    setCustomMode(true);
+                  }}
+                >
+                  <Text
+                    style={[S.unitTxt, targetUnit === u && S.unitTxtActive]}
+                  >
+                    {u}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
 
-      {/* File list */}
-      {files.length > 0 && (
-        <>
-          <View style={S.listHeader}>
-            <Text style={S.listTitle}>
-              {files.length} image{files.length !== 1 ? 's' : ''}
+          <View style={S.targetDisplay}>
+            <Text style={S.targetLabel}>Target: </Text>
+            <Text style={S.targetValue}>
+              {targetValue || '0'} {targetUnit} ={' '}
+              {formatBytes(toBytes(parseFloat(targetValue) || 0, targetUnit))}
             </Text>
-            <TouchableOpacity onPress={clearAll}>
-              <Text style={S.clearTxt}>Clear all</Text>
-            </TouchableOpacity>
           </View>
-
-          {files.map(f => (
-            <FileRow key={f.id} file={f} onRemove={() => removeFile(f.id)} />
-          ))}
-        </>
-      )}
-
-      {/* Progress */}
-      {processing && (
-        <View style={S.progressBox}>
-          <Text style={S.progressLabel}>
-            Processing {currentIdx}/{files.length} — {progress}%
-          </Text>
-          <ProgressBar value={progress} />
         </View>
-      )}
 
-      {/* Resize button */}
-      <AppButton
-        label={
-          processing
-            ? `Resizing… ${progress}%`
-            : `🗜️ Resize ${files.length} image${files.length !== 1 ? 's' : ''}`
-        }
-        onPress={handleResize}
-        disabled={!files.length || processing}
-        loading={processing}
-        style={S.actionBtn}
-      />
+        {/* File list */}
+        {files.length > 0 && (
+          <>
+            <View style={S.listHeader}>
+              <Text style={S.listTitle}>
+                {files.length} image{files.length !== 1 ? 's' : ''}
+              </Text>
+              <TouchableOpacity onPress={clearAll}>
+                <Text style={S.clearTxt}>Clear all</Text>
+              </TouchableOpacity>
+            </View>
 
-      {/* Results */}
-      {results.length > 0 && (
-        <View style={S.resultsBox}>
-          <Text style={S.resultsTitle}>
-            ✅ {results.length} file{results.length !== 1 ? 's' : ''} resized
-          </Text>
-          {results.map(r => (
-            <ResizeResultRow
-              key={r.id}
-              result={r}
-              onSave={() => handleSave(r)}
-              onShare={() => handleShare(r)}
-            />
-          ))}
-          {results.length > 1 && (
-            <AppButton
-              label={`↓ Save All (${results.length})`}
-              onPress={handleSaveAll}
-              variant="success"
-              style={{ marginTop: 12 }}
-            />
-          )}
-        </View>
-      )}
+            {files.map(f => (
+              <FileRow key={f.id} file={f} onRemove={() => removeFile(f.id)} />
+            ))}
+          </>
+        )}
 
-      {files.length === 0 && results.length === 0 && (
-        <Text style={S.empty}>No images selected — tap above to begin</Text>
-      )}
-    </ScrollView>
+        {/* Progress */}
+        {processing && (
+          <View style={S.progressBox}>
+            <Text style={S.progressLabel}>
+              Processing {currentIdx}/{files.length} — {progress}%
+            </Text>
+            <ProgressBar value={progress} />
+          </View>
+        )}
+
+        {/* Resize button */}
+        <AppButton
+          label={
+            processing
+              ? `Resizing… ${progress}%`
+              : `🗜️ Resize ${files.length} image${
+                  files.length !== 1 ? 's' : ''
+                }`
+          }
+          onPress={handleResize}
+          disabled={!files.length || processing}
+          loading={processing}
+          style={S.actionBtn}
+        />
+
+        {/* Results */}
+        {results.length > 0 && (
+          <View style={S.resultsBox}>
+            <Text style={S.resultsTitle}>
+              ✅ {results.length} file{results.length !== 1 ? 's' : ''} resized
+            </Text>
+            {results.map(r => (
+              <ResizeResultRow
+                key={r.id}
+                result={r}
+                onSave={() => handleSave(r)}
+                onShare={() => handleShare(r)}
+              />
+            ))}
+            {results.length > 1 && (
+              <AppButton
+                label={`↓ Save All (${results.length})`}
+                onPress={handleSaveAll}
+                variant="success"
+                style={{ marginTop: 12 }}
+              />
+            )}
+          </View>
+        )}
+
+        {files.length === 0 && results.length === 0 && (
+          <Text style={S.empty}>No images selected — tap above to begin</Text>
+        )}
+      </ScrollView>
+    </>
   );
 }
 

@@ -29,6 +29,7 @@ import {
   ProgressBar,
   SectionLabel,
 } from '../../components/UIComponents';
+import Header from '../../components/Header';
 
 // ─────────────────────────────────────────────
 // Preset sizes
@@ -50,7 +51,7 @@ interface SourcePage {
   type: string;
 }
 
-export default function PdfResizeScreen() {
+export default function PdfResizeScreen({ navigation }: any) {
   const [pages, setPages] = useState<SourcePage[]>([]);
   const [targetValue, setTargetValue] = useState('1');
   const [targetUnit, setTargetUnit] = useState<SizeUnit>('MB');
@@ -193,243 +194,248 @@ export default function PdfResizeScreen() {
 
   // ─────────────────────────────────────────────────────────────
   return (
-    <ScrollView
-      style={S.scroll}
-      contentContainerStyle={S.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={S.header}>
-        <Text style={S.headerIcon}>📄</Text>
-        <Text style={S.title}>PDF Resizer</Text>
-        <Text style={S.subtitle}>
-          Combine images into a PDF at exact KB / MB
-        </Text>
-      </View>
-
-      {/* How it works banner */}
-      <View style={S.infoBanner}>
-        <Text style={S.infoIcon}>ℹ️</Text>
-        <Text style={S.infoText}>
-          Add images as PDF pages. The resizer compresses them until the final
-          PDF fits within your target size.
-        </Text>
-      </View>
-
-      {/* Pick pages */}
-      <TouchableOpacity
-        style={S.dropZone}
-        onPress={pickPages}
-        activeOpacity={0.8}
+    <>
+      <Header title={'PDF Resizer'} navigation={navigation} />
+      <ScrollView
+        style={S.scroll}
+        contentContainerStyle={S.container}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={S.dropIcon}>🖼️</Text>
-        <Text style={S.dropTitle}>Tap to add images as PDF pages</Text>
-        <Text style={S.dropSub}>Order shown below = page order in PDF</Text>
-        {pages.length > 0 && (
-          <View style={S.addBadge}>
-            <Text style={S.addTxt}>+ Add more pages</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {/* Target size */}
-      <View style={S.panel}>
-        <SectionLabel text="Target PDF Size" />
-
-        <View style={S.presets}>
-          {PRESETS.map((p, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[
-                S.presetBtn,
-                !customMode && selectedPreset === i && S.presetActive,
-              ]}
-              onPress={() => applyPreset(i)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  S.presetTxt,
-                  !customMode && selectedPreset === i && S.presetTxtActive,
-                ]}
-              >
-                {p.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Header */}
+        <View style={S.header}>
+          <Text style={S.headerIcon}>📄</Text>
+          <Text style={S.title}>PDF Resizer</Text>
+          <Text style={S.subtitle}>
+            Combine images into a PDF at exact KB / MB
+          </Text>
         </View>
 
-        {/* Custom input */}
+        {/* How it works banner */}
+        <View style={S.infoBanner}>
+          <Text style={S.infoIcon}>ℹ️</Text>
+          <Text style={S.infoText}>
+            Add images as PDF pages. The resizer compresses them until the final
+            PDF fits within your target size.
+          </Text>
+        </View>
+
+        {/* Pick pages */}
         <TouchableOpacity
-          style={[S.customRow, customMode && S.customRowActive]}
-          onPress={() => setCustomMode(true)}
-          activeOpacity={0.9}
+          style={S.dropZone}
+          onPress={pickPages}
+          activeOpacity={0.8}
         >
-          <Text style={S.customLabel}>Custom:</Text>
-          <TextInput
-            style={S.customInput}
-            value={targetValue}
-            onChangeText={v => {
-              setTargetValue(v);
-              setCustomMode(true);
-            }}
-            keyboardType="decimal-pad"
-            placeholder="e.g. 1.5"
-            placeholderTextColor={COLORS.muted}
-            onFocus={() => setCustomMode(true)}
-          />
-          <View style={S.unitRow}>
-            {(['KB', 'MB'] as SizeUnit[]).map(u => (
+          <Text style={S.dropIcon}>🖼️</Text>
+          <Text style={S.dropTitle}>Tap to add images as PDF pages</Text>
+          <Text style={S.dropSub}>Order shown below = page order in PDF</Text>
+          {pages.length > 0 && (
+            <View style={S.addBadge}>
+              <Text style={S.addTxt}>+ Add more pages</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Target size */}
+        <View style={S.panel}>
+          <SectionLabel text="Target PDF Size" />
+
+          <View style={S.presets}>
+            {PRESETS.map((p, i) => (
               <TouchableOpacity
-                key={u}
-                style={[S.unitBtn, targetUnit === u && S.unitActive]}
-                onPress={() => {
-                  setTargetUnit(u);
-                  setCustomMode(true);
-                }}
+                key={i}
+                style={[
+                  S.presetBtn,
+                  !customMode && selectedPreset === i && S.presetActive,
+                ]}
+                onPress={() => applyPreset(i)}
+                activeOpacity={0.7}
               >
-                <Text style={[S.unitTxt, targetUnit === u && S.unitTxtActive]}>
-                  {u}
+                <Text
+                  style={[
+                    S.presetTxt,
+                    !customMode && selectedPreset === i && S.presetTxtActive,
+                  ]}
+                >
+                  {p.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </TouchableOpacity>
 
-        <View style={S.targetDisplay}>
-          <Text style={S.targetLabel}>Target: </Text>
-          <Text style={S.targetValue}>
-            {targetValue || '0'} {targetUnit} ={' '}
-            {formatBytes(toBytes(parseFloat(targetValue) || 0, targetUnit))}
-          </Text>
-        </View>
-      </View>
-
-      {/* Page list */}
-      {pages.length > 0 && (
-        <>
-          <View style={S.listHeader}>
-            <View>
-              <Text style={S.listTitle}>
-                {pages.length} page{pages.length !== 1 ? 's' : ''}
-              </Text>
-              <Text style={S.listSub}>
-                Source size: {formatBytes(totalSourceSize)}
-              </Text>
+          {/* Custom input */}
+          <TouchableOpacity
+            style={[S.customRow, customMode && S.customRowActive]}
+            onPress={() => setCustomMode(true)}
+            activeOpacity={0.9}
+          >
+            <Text style={S.customLabel}>Custom:</Text>
+            <TextInput
+              style={S.customInput}
+              value={targetValue}
+              onChangeText={v => {
+                setTargetValue(v);
+                setCustomMode(true);
+              }}
+              keyboardType="decimal-pad"
+              placeholder="e.g. 1.5"
+              placeholderTextColor={COLORS.muted}
+              onFocus={() => setCustomMode(true)}
+            />
+            <View style={S.unitRow}>
+              {(['KB', 'MB'] as SizeUnit[]).map(u => (
+                <TouchableOpacity
+                  key={u}
+                  style={[S.unitBtn, targetUnit === u && S.unitActive]}
+                  onPress={() => {
+                    setTargetUnit(u);
+                    setCustomMode(true);
+                  }}
+                >
+                  <Text
+                    style={[S.unitTxt, targetUnit === u && S.unitTxtActive]}
+                  >
+                    {u}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-            <TouchableOpacity onPress={clearAll}>
-              <Text style={S.clearTxt}>Clear all</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
+
+          <View style={S.targetDisplay}>
+            <Text style={S.targetLabel}>Target: </Text>
+            <Text style={S.targetValue}>
+              {targetValue || '0'} {targetUnit} ={' '}
+              {formatBytes(toBytes(parseFloat(targetValue) || 0, targetUnit))}
+            </Text>
           </View>
-
-          {pages.map((p, idx) => (
-            <PageRow
-              key={p.id}
-              page={p}
-              index={idx}
-              total={pages.length}
-              onRemove={() => removePage(p.id)}
-              onMoveUp={() => moveUp(idx)}
-              onMoveDown={() => moveDown(idx)}
-            />
-          ))}
-        </>
-      )}
-
-      {/* Progress */}
-      {processing && (
-        <View style={S.progressBox}>
-          <Text style={S.progressLabel}>Building PDF… {progress}%</Text>
-          <ProgressBar value={progress} />
         </View>
-      )}
 
-      {/* Resize button */}
-      <AppButton
-        label={
-          processing
-            ? `Building PDF… ${progress}%`
-            : `📄 Build PDF  (${pages.length} page${
-                pages.length !== 1 ? 's' : ''
-              })`
-        }
-        onPress={handleResize}
-        disabled={!pages.length || processing}
-        loading={processing}
-        style={S.actionBtn}
-      />
+        {/* Page list */}
+        {pages.length > 0 && (
+          <>
+            <View style={S.listHeader}>
+              <View>
+                <Text style={S.listTitle}>
+                  {pages.length} page{pages.length !== 1 ? 's' : ''}
+                </Text>
+                <Text style={S.listSub}>
+                  Source size: {formatBytes(totalSourceSize)}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={clearAll}>
+                <Text style={S.clearTxt}>Clear all</Text>
+              </TouchableOpacity>
+            </View>
 
-      {/* Result card */}
-      {result?.success && (
-        <View style={S.resultCard}>
-          <Text style={S.resultTitle}>✅ PDF Ready</Text>
+            {pages.map((p, idx) => (
+              <PageRow
+                key={p.id}
+                page={p}
+                index={idx}
+                total={pages.length}
+                onRemove={() => removePage(p.id)}
+                onMoveUp={() => moveUp(idx)}
+                onMoveDown={() => moveDown(idx)}
+              />
+            ))}
+          </>
+        )}
 
-          <View style={S.resultGrid}>
-            <ResultStat label="Pages" value={String(result.pageCount)} />
-            <ResultStat
-              label="Output Size"
-              value={formatBytes(result.outputSize)}
-              accent
-            />
-            <ResultStat label="Saved" value={`${result.savedPercent}%`} />
-            <ResultStat
-              label="JPEG Quality"
-              value={`${result.finalQuality}%`}
-            />
+        {/* Progress */}
+        {processing && (
+          <View style={S.progressBox}>
+            <Text style={S.progressLabel}>Building PDF… {progress}%</Text>
+            <ProgressBar value={progress} />
           </View>
+        )}
 
-          {/* Size comparison bar */}
-          <View style={S.barSection}>
-            <Text style={S.barLabel}>Compression</Text>
-            <View style={S.barBg}>
-              <View
-                style={[
-                  S.barFill,
-                  { width: `${Math.min(100, 100 - result.savedPercent)}%` },
-                ]}
+        {/* Resize button */}
+        <AppButton
+          label={
+            processing
+              ? `Building PDF… ${progress}%`
+              : `📄 Build PDF  (${pages.length} page${
+                  pages.length !== 1 ? 's' : ''
+                })`
+          }
+          onPress={handleResize}
+          disabled={!pages.length || processing}
+          loading={processing}
+          style={S.actionBtn}
+        />
+
+        {/* Result card */}
+        {result?.success && (
+          <View style={S.resultCard}>
+            <Text style={S.resultTitle}>✅ PDF Ready</Text>
+
+            <View style={S.resultGrid}>
+              <ResultStat label="Pages" value={String(result.pageCount)} />
+              <ResultStat
+                label="Output Size"
+                value={formatBytes(result.outputSize)}
+                accent
+              />
+              <ResultStat label="Saved" value={`${result.savedPercent}%`} />
+              <ResultStat
+                label="JPEG Quality"
+                value={`${result.finalQuality}%`}
               />
             </View>
-            <View style={S.barLegend}>
-              <Text style={S.barLegendTxt}>
-                Output: {formatBytes(result.outputSize)}
-              </Text>
-              <Text style={S.barLegendTxt}>
-                Target: {targetValue}
-                {targetUnit}
-              </Text>
+
+            {/* Size comparison bar */}
+            <View style={S.barSection}>
+              <Text style={S.barLabel}>Compression</Text>
+              <View style={S.barBg}>
+                <View
+                  style={[
+                    S.barFill,
+                    { width: `${Math.min(100, 100 - result.savedPercent)}%` },
+                  ]}
+                />
+              </View>
+              <View style={S.barLegend}>
+                <Text style={S.barLegendTxt}>
+                  Output: {formatBytes(result.outputSize)}
+                </Text>
+                <Text style={S.barLegendTxt}>
+                  Target: {targetValue}
+                  {targetUnit}
+                </Text>
+              </View>
+            </View>
+
+            <View style={S.resultBtns}>
+              <TouchableOpacity
+                style={S.saveBtnLg}
+                onPress={handleSave}
+                activeOpacity={0.8}
+              >
+                <Text style={S.saveBtnTxt}>↓ Save PDF</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={S.shareBtnLg}
+                onPress={handleShare}
+                activeOpacity={0.8}
+              >
+                <Text style={S.shareBtnTxt}>⬆ Share PDF</Text>
+              </TouchableOpacity>
             </View>
           </View>
+        )}
 
-          <View style={S.resultBtns}>
-            <TouchableOpacity
-              style={S.saveBtnLg}
-              onPress={handleSave}
-              activeOpacity={0.8}
-            >
-              <Text style={S.saveBtnTxt}>↓ Save PDF</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={S.shareBtnLg}
-              onPress={handleShare}
-              activeOpacity={0.8}
-            >
-              <Text style={S.shareBtnTxt}>⬆ Share PDF</Text>
-            </TouchableOpacity>
+        {result && !result.success && (
+          <View style={S.errorCard}>
+            <Text style={S.errorTitle}>❌ Failed</Text>
+            <Text style={S.errorMsg}>{result.error}</Text>
           </View>
-        </View>
-      )}
+        )}
 
-      {result && !result.success && (
-        <View style={S.errorCard}>
-          <Text style={S.errorTitle}>❌ Failed</Text>
-          <Text style={S.errorMsg}>{result.error}</Text>
-        </View>
-      )}
-
-      {pages.length === 0 && !result && (
-        <Text style={S.empty}>No pages added — tap above to begin</Text>
-      )}
-    </ScrollView>
+        {pages.length === 0 && !result && (
+          <Text style={S.empty}>No pages added — tap above to begin</Text>
+        )}
+      </ScrollView>
+    </>
   );
 }
 

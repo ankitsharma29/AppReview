@@ -30,6 +30,7 @@ import {
 } from '../../components/UIComponents';
 import ImageCard from '../../ProgressBar/ImageCard';
 import ResultItem from '../../ProgressBar/ResultItem';
+import Header from '../../components/Header';
 
 type Tab = 'convert' | 'pdf';
 
@@ -42,7 +43,7 @@ interface Result {
   mimeType: string;
 }
 
-export default function Content() {
+export default function Content({ navigation }: any) {
   const [tab, setTab] = useState<Tab>('convert');
   const [files, setFiles] = useState<ImageFile[]>([]);
   const [targetFormat, setTargetFormat] = useState<ImageFormat>('PNG');
@@ -272,196 +273,199 @@ export default function Content() {
   };
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.badge}>
-        <Text style={styles.badgeTxt}>⚡ IMAGE STUDIO</Text>
-      </View>
-      <Text style={styles.title}>Image Converter</Text>
-      <Text style={styles.subtitle}>JPG · PNG · JPEG · WEBP · PDF</Text>
-
-      <View style={styles.statsRow}>
-        <StatCard value={totalConverted} label="Converted" />
-        <StatCard value={files.length} label="Queued" />
-        <StatCard value={results.length} label="Ready" />
-      </View>
-
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'convert' && styles.tabActive]}
-          onPress={() => switchTab('convert')}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[styles.tabTxt, tab === 'convert' && styles.tabTxtActive]}
-          >
-            🔄 Format Convert
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'pdf' && styles.tabActive]}
-          onPress={() => switchTab('pdf')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabTxt, tab === 'pdf' && styles.tabTxtActive]}>
-            📄 Image → PDF
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={styles.dropZone}
-        onPress={pickImages}
-        activeOpacity={0.8}
+    <>
+      <Header title={'Image Converter'} navigation={navigation} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.dropIcon}>{tab === 'pdf' ? '🖼️' : '📂'}</Text>
-        <Text style={styles.dropTitle}>Tap to choose images</Text>
-        <Text style={styles.dropSub}>
-          JPG · PNG · JPEG · WEBP · GIF supported
-        </Text>
-        {files.length > 0 && (
-          <View style={styles.addMoreBadge}>
-            <Text style={styles.addMoreTxt}>+ Add more</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeTxt}>⚡ IMAGE STUDIO</Text>
+        </View>
+        <Text style={styles.title}>Image Converter</Text>
+        <Text style={styles.subtitle}>JPG · PNG · JPEG · WEBP · PDF</Text>
+
+        <View style={styles.statsRow}>
+          <StatCard value={totalConverted} label="Converted" />
+          <StatCard value={files.length} label="Queued" />
+          <StatCard value={results.length} label="Ready" />
+        </View>
+
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tabBtn, tab === 'convert' && styles.tabActive]}
+            onPress={() => switchTab('convert')}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[styles.tabTxt, tab === 'convert' && styles.tabTxtActive]}
+            >
+              🔄 Format Convert
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabBtn, tab === 'pdf' && styles.tabActive]}
+            onPress={() => switchTab('pdf')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.tabTxt, tab === 'pdf' && styles.tabTxtActive]}>
+              📄 Image → PDF
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.dropZone}
+          onPress={pickImages}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.dropIcon}>{tab === 'pdf' ? '🖼️' : '📂'}</Text>
+          <Text style={styles.dropTitle}>Tap to choose images</Text>
+          <Text style={styles.dropSub}>
+            JPG · PNG · JPEG · WEBP · GIF supported
+          </Text>
+          {files.length > 0 && (
+            <View style={styles.addMoreBadge}>
+              <Text style={styles.addMoreTxt}>+ Add more</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {tab === 'convert' && (
+          <View style={styles.panel}>
+            <SectionLabel text="Convert To" />
+            <View style={styles.chips}>
+              {(['JPG', 'PNG', 'JPEG', 'WEBP'] as ImageFormat[]).map(f => (
+                <FormatChip
+                  key={f}
+                  label={f}
+                  selected={targetFormat === f}
+                  onPress={() => setTargetFormat(f)}
+                />
+              ))}
+            </View>
           </View>
         )}
-      </TouchableOpacity>
 
-      {tab === 'convert' && (
+        {files.length > 0 && (
+          <>
+            <View style={styles.gridHeader}>
+              <Text style={styles.gridTitle}>
+                {files.length} image{files.length !== 1 ? 's' : ''} queued
+              </Text>
+              <TouchableOpacity onPress={clearAll}>
+                <Text style={styles.clearTxt}>Clear all</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.grid}>
+              {files.map(f => (
+                <ImageCard key={f.id} item={f} onRemove={removeFile} />
+              ))}
+            </View>
+          </>
+        )}
+
         <View style={styles.panel}>
-          <SectionLabel text="Convert To" />
-          <View style={styles.chips}>
-            {(['JPG', 'PNG', 'JPEG', 'WEBP'] as ImageFormat[]).map(f => (
-              <FormatChip
-                key={f}
-                label={f}
-                selected={targetFormat === f}
-                onPress={() => setTargetFormat(f)}
-              />
-            ))}
+          <SectionLabel text="Options" />
+          <View style={styles.optRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optLabel}>Quality: {quality}%</Text>
+              <Text style={styles.optSub}>
+                Higher = better quality, larger file
+              </Text>
+            </View>
           </View>
-        </View>
-      )}
-
-      {files.length > 0 && (
-        <>
-          <View style={styles.gridHeader}>
-            <Text style={styles.gridTitle}>
-              {files.length} image{files.length !== 1 ? 's' : ''} queued
-            </Text>
-            <TouchableOpacity onPress={clearAll}>
-              <Text style={styles.clearTxt}>Clear all</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.grid}>
-            {files.map(f => (
-              <ImageCard key={f.id} item={f} onRemove={removeFile} />
-            ))}
-          </View>
-        </>
-      )}
-
-      <View style={styles.panel}>
-        <SectionLabel text="Options" />
-        <View style={styles.optRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.optLabel}>Quality: {quality}%</Text>
-            <Text style={styles.optSub}>
-              Higher = better quality, larger file
-            </Text>
-          </View>
-        </View>
-        <View style={styles.sliderRow}>
-          {[10, 25, 50, 75, 90, 100].map(v => (
-            <TouchableOpacity
-              key={v}
-              onPress={() => setQuality(v)}
-              style={[
-                styles.sliderBtn,
-                quality === v && {
-                  backgroundColor: COLORS.accent,
-                  borderColor: COLORS.accent,
-                },
-              ]}
-            >
-              <Text
+          <View style={styles.sliderRow}>
+            {[10, 25, 50, 75, 90, 100].map(v => (
+              <TouchableOpacity
+                key={v}
+                onPress={() => setQuality(v)}
                 style={[
-                  styles.sliderBtnTxt,
-                  quality === v && { color: COLORS.white },
+                  styles.sliderBtn,
+                  quality === v && {
+                    backgroundColor: COLORS.accent,
+                    borderColor: COLORS.accent,
+                  },
                 ]}
               >
-                {v}
+                <Text
+                  style={[
+                    styles.sliderBtnTxt,
+                    quality === v && { color: COLORS.white },
+                  ]}
+                >
+                  {v}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.optRow}>
+            <View>
+              <Text style={styles.optLabel}>Auto-rename output files</Text>
+              <Text style={styles.optSub}>
+                Match filename extension to format
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.optRow}>
-          <View>
-            <Text style={styles.optLabel}>Auto-rename output files</Text>
-            <Text style={styles.optSub}>
-              Match filename extension to format
-            </Text>
-          </View>
-          <Toggle value={autoRename} onChange={setAutoRename} />
-        </View>
-      </View>
-
-      {converting && <ProgressBar value={progress} />}
-
-      <AppButton
-        label={convertBtnLabel()}
-        onPress={handleConvert}
-        disabled={!files.length || converting}
-        loading={converting}
-        style={styles.convertBtn}
-      />
-
-      {results.length > 0 && (
-        <View style={styles.resultsPanel}>
-          <View style={styles.resultsHeader}>
-            <Text style={styles.resultsTick}>✅</Text>
-            <Text style={styles.resultsTitle}>
-              {results.length} file{results.length !== 1 ? 's' : ''} ready
-            </Text>
-          </View>
-          {results.map(r => (
-            <ResultItem
-              key={r.id}
-              name={r.name}
-              size={r.size}
-              type={r.type}
-              item={r}
-              onSave={() => handleSave(r)}
-              onShare={() => handleShare(r)}
-            />
-          ))}
-          <View style={styles.allBtnsRow}>
-            <AppButton
-              label={`↓ Save All (${results.length})`}
-              onPress={handleSaveAll}
-              variant="success"
-              style={styles.allBtn}
-            />
-            <AppButton
-              label="⬆ Share All"
-              onPress={handleShareAll}
-              variant="outline"
-              style={styles.allBtn}
-            />
+            </View>
+            <Toggle value={autoRename} onChange={setAutoRename} />
           </View>
         </View>
-      )}
 
-      {files.length === 0 && results.length === 0 && (
-        <Text style={styles.empty}>
-          No images added yet — tap above to begin
-        </Text>
-      )}
-    </ScrollView>
+        {converting && <ProgressBar value={progress} />}
+
+        <AppButton
+          label={convertBtnLabel()}
+          onPress={handleConvert}
+          disabled={!files.length || converting}
+          loading={converting}
+          style={styles.convertBtn}
+        />
+
+        {results.length > 0 && (
+          <View style={styles.resultsPanel}>
+            <View style={styles.resultsHeader}>
+              <Text style={styles.resultsTick}>✅</Text>
+              <Text style={styles.resultsTitle}>
+                {results.length} file{results.length !== 1 ? 's' : ''} ready
+              </Text>
+            </View>
+            {results.map(r => (
+              <ResultItem
+                key={r.id}
+                name={r.name}
+                size={r.size}
+                type={r.type}
+                item={r}
+                onSave={() => handleSave(r)}
+                onShare={() => handleShare(r)}
+              />
+            ))}
+            <View style={styles.allBtnsRow}>
+              <AppButton
+                label={`↓ Save All (${results.length})`}
+                onPress={handleSaveAll}
+                variant="success"
+                style={styles.allBtn}
+              />
+              <AppButton
+                label="⬆ Share All"
+                onPress={handleShareAll}
+                variant="outline"
+                style={styles.allBtn}
+              />
+            </View>
+          </View>
+        )}
+
+        {files.length === 0 && results.length === 0 && (
+          <Text style={styles.empty}>
+            No images added yet — tap above to begin
+          </Text>
+        )}
+      </ScrollView>
+    </>
   );
 }
 

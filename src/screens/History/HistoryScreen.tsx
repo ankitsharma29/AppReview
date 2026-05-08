@@ -113,7 +113,7 @@ const HistoryScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Header title={'History'} navigation={navigation} historyButton={false} />
+      <Header title={'History'} navigation={navigation} />
 
       <FlatList
         data={history}
