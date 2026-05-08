@@ -32,6 +32,7 @@ import {
 import Header from '../../components/Header';
 import { useIsFocused } from '@react-navigation/native';
 import { interstitial } from '../../components/Ads/adMethods';
+import BannerAds from '../../components/Ads/BannerAds';
 
 // ─────────────────────────────────────────────
 // Preset sizes
@@ -253,7 +254,10 @@ export default function PdfResizeScreen({ navigation }: any) {
             </View>
           )}
         </TouchableOpacity>
-
+        <BannerAds
+          BaneerSize="390x170"
+          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+        />
         {/* Target size */}
         <View style={S.panel}>
           <SectionLabel text="Target PDF Size" />

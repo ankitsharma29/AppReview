@@ -33,6 +33,7 @@ import ResultItem from '../../ProgressBar/ResultItem';
 import Header from '../../components/Header';
 import { useIsFocused } from '@react-navigation/native';
 import { interstitial } from '../../components/Ads/adMethods';
+import BannerAds from '../../components/Ads/BannerAds';
 
 type Tab = 'convert' | 'pdf';
 
@@ -385,7 +386,10 @@ export default function Content({ navigation }: any) {
             </View>
           </>
         )}
-
+        <BannerAds
+          BaneerSize="390x170"
+          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+        />
         <View style={styles.panel}>
           <SectionLabel text="Options" />
           <View style={styles.optRow}>

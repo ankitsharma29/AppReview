@@ -18,6 +18,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, RADIUS, SPACING } from '../../utils/theme';
 import Header from '../../components/Header';
+import BannerAds from '../../components/Ads/BannerAds';
 
 const { width: W } = Dimensions.get('window');
 
@@ -310,7 +311,10 @@ export default function Convert({ navigation }: any) {
             ))}
           </View>
         </Animated.View>
-
+        <BannerAds
+          BaneerSize="390x170"
+          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+        />
         {/* ── Section heading ─────────────────────────────── */}
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTxt}>CHOOSE A TOOL</Text>

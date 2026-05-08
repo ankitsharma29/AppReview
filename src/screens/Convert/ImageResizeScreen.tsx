@@ -36,6 +36,7 @@ import {
 import Header from '../../components/Header';
 import { useIsFocused } from '@react-navigation/native';
 import { interstitial } from '../../components/Ads/adMethods';
+import BannerAds from '../../components/Ads/BannerAds';
 
 // ─────────────────────────────────────────────
 // Preset target sizes
@@ -279,7 +280,10 @@ export default function ImageResizeScreen({ navigation }: any) {
             </View>
           )}
         </TouchableOpacity>
-
+        <BannerAds
+          BaneerSize="390x170"
+          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+        />
         {/* Target size section */}
         <View style={S.panel}>
           <SectionLabel text="Target File Size" />
