@@ -195,7 +195,7 @@ export default function PdfResizeScreen({ navigation }: any) {
   // ─────────────────────────────────────────────────────────────
   return (
     <>
-      <Header title={'PDF Resizer'} navigation={navigation} />
+      <Header navigation={navigation} />
       <ScrollView
         style={S.scroll}
         contentContainerStyle={S.container}

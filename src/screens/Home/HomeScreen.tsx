@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white(),
   },
   subContainer: {
-    backgroundColor: Colors.gradientTop(),
+    backgroundColor: Colors.headerColor(),
     padding: scaleSize(20),
     borderRadius: scaleSize(10),
     justifyContent: 'center',
@@ -545,6 +545,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black(),
     alignItems: 'center',
     borderRadius: 5,
+    borderWidth: 0.5,
+    borderColor: Colors.white(),
   },
   // model
   centeredView: {

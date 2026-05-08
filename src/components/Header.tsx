@@ -32,8 +32,12 @@ const Header = ({
           ) : (
             <Text></Text>
           )}
+          {title != '' ? (
+            <Text style={styles.headerText}>{title}</Text>
+          ) : (
+            <Text></Text>
+          )}
 
-          <Text style={styles.headerText}>{title}</Text>
           {historyButton == true ? (
             <TouchableOpacity
               onPress={() => {
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: Colors.gradientTop(),
+    backgroundColor: Colors.headerColor(),
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',

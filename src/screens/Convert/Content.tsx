@@ -274,7 +274,7 @@ export default function Content({ navigation }: any) {
 
   return (
     <>
-      <Header title={'Image Converter'} navigation={navigation} />
+      <Header navigation={navigation} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.container}

@@ -67,6 +67,7 @@ const Colors = {
   softBrown: (alpha = 1) => `rgba(210,164,0, ${alpha})`,
   gradientBlue: (alpha = 1) => `rgba(172,181,255, ${alpha})`,
   gradientTop: (alpha = 1) => `rgba(92,114,151, ${alpha})`,
+  headerColor: (alpha = 1) => `#161627`,
   gradientBottom: (alpha = 1) => `rgba(143,174,223, ${alpha})`,
   gradientHorizontalDark: (alpha = 1) => `rgba(206, 217, 236, ${alpha})`,
   gradientHorizontalLight: (alpha = 1) => `rgba(239, 241, 244, ${alpha})`,

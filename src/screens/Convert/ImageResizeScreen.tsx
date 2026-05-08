@@ -232,7 +232,7 @@ export default function ImageResizeScreen({ navigation }: any) {
   // ─────────────────────────────────────────────────────────────
   return (
     <>
-      <Header title={'Image Resizer'} navigation={navigation} />
+      <Header navigation={navigation} />
       <ScrollView
         style={S.scroll}
         contentContainerStyle={S.container}

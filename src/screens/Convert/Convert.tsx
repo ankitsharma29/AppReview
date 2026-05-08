@@ -3,7 +3,7 @@
 // Requires: @react-navigation/native (for navigation.navigate)
 // Each card navigates to: 'Converter' | 'ImageResize' | 'PdfResize'
 
-import React, {useRef, useEffect} from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,11 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {COLORS, RADIUS, SPACING} from '../../utils/theme';
+import { useNavigation } from '@react-navigation/native';
+import { COLORS, RADIUS, SPACING } from '../../utils/theme';
+import Header from '../../components/Header';
 
-const {width: W} = Dimensions.get('window');
+const { width: W } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────
 // Card config
@@ -37,9 +38,9 @@ const CARDS = [
     bg: 'rgba(124,106,247,0.07)',
     pills: ['JPG', 'PNG', 'WEBP', '→ PDF'],
     bullets: [
-      {icon: '🔄', label: 'Batch format convert'},
-      {icon: '📄', label: 'Merge images into PDF'},
-      {icon: '⚡', label: 'Fast on-device processing'},
+      { icon: '🔄', label: 'Batch format convert' },
+      { icon: '📄', label: 'Merge images into PDF' },
+      { icon: '⚡', label: 'Fast on-device processing' },
     ],
   },
   {
@@ -55,9 +56,9 @@ const CARDS = [
     bg: 'rgba(247,106,138,0.07)',
     pills: ['50 KB', '200 KB', '1 MB', 'Custom'],
     bullets: [
-      {icon: '🎯', label: 'Hit exact target file size'},
-      {icon: '📉', label: 'Up to 95% size reduction'},
-      {icon: '🖼️', label: 'Preserves image quality'},
+      { icon: '🎯', label: 'Hit exact target file size' },
+      { icon: '📉', label: 'Up to 95% size reduction' },
+      { icon: '🖼️', label: 'Preserves image quality' },
     ],
   },
   {
@@ -73,9 +74,9 @@ const CARDS = [
     bg: 'rgba(106,247,200,0.07)',
     pills: ['100 KB', '1 MB', '5 MB', 'Custom'],
     bullets: [
-      {icon: '📑', label: 'Reorder pages freely'},
-      {icon: '🎚️', label: 'Smart JPEG compression'},
-      {icon: '📤', label: 'Share or save instantly'},
+      { icon: '📑', label: 'Reorder pages freely' },
+      { icon: '🎚️', label: 'Smart JPEG compression' },
+      { icon: '📤', label: 'Share or save instantly' },
     ],
   },
 ];
@@ -83,11 +84,17 @@ const CARDS = [
 // ─────────────────────────────────────────────
 // Single animated card
 // ─────────────────────────────────────────────
-function FeatureCard({card, index}: {card: (typeof CARDS)[0]; index: number}) {
+function FeatureCard({
+  card,
+  index,
+}: {
+  card: (typeof CARDS)[0];
+  index: number;
+}) {
   const nav = useNavigation<any>();
 
   // entrance animation
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(48)).current;
 
   // press animation
@@ -130,57 +137,76 @@ function FeatureCard({card, index}: {card: (typeof CARDS)[0]; index: number}) {
     <Animated.View
       style={{
         opacity: fadeAnim,
-        transform: [{translateY: slideAnim}, {scale: pressScale}],
+        transform: [{ translateY: slideAnim }, { scale: pressScale }],
         marginBottom: SPACING.md,
         marginHorizontal: SPACING.md,
-      }}>
-
+      }}
+    >
       {/* Shadow glow layer */}
-      <View style={[styles.glowLayer, {backgroundColor: card.glow}]} />
+      <View style={[styles.glowLayer, { backgroundColor: card.glow }]} />
 
       <TouchableOpacity
         activeOpacity={1}
         onPress={() => nav.navigate(card.route)}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={[styles.card, {borderColor: card.border, backgroundColor: COLORS.card}]}>
-
+        style={[
+          styles.card,
+          { borderColor: card.border, backgroundColor: COLORS.card },
+        ]}
+      >
         {/* Top accent strip */}
-        <View style={[styles.topStrip, {backgroundColor: card.accent}]} />
+        <View style={[styles.topStrip, { backgroundColor: card.accent }]} />
 
         {/* Header row */}
         <View style={styles.cardHeader}>
           {/* Icon circle */}
-          <View style={[styles.iconCircle, {backgroundColor: card.bg, borderColor: card.border}]}>
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: card.bg, borderColor: card.border },
+            ]}
+          >
             <Text style={styles.cardEmoji}>{card.emoji}</Text>
           </View>
 
           {/* Badge + arrow */}
           <View style={styles.headerRight}>
-            <View style={[styles.badgePill, {backgroundColor: card.bg, borderColor: card.border}]}>
-              <Text style={[styles.badgeTxt, {color: card.accent}]}>{card.badge}</Text>
+            <View
+              style={[
+                styles.badgePill,
+                { backgroundColor: card.bg, borderColor: card.border },
+              ]}
+            >
+              <Text style={[styles.badgeTxt, { color: card.accent }]}>
+                {card.badge}
+              </Text>
             </View>
-            <View style={[styles.arrowCircle, {borderColor: card.border}]}>
-              <Text style={[styles.arrowTxt, {color: card.accent}]}>›</Text>
+            <View style={[styles.arrowCircle, { borderColor: card.border }]}>
+              <Text style={[styles.arrowTxt, { color: card.accent }]}>›</Text>
             </View>
           </View>
         </View>
 
         {/* Title block */}
         <Text style={styles.cardTitle}>{card.title}</Text>
-        <Text style={[styles.cardSubtitle, {color: card.accent}]}>{card.subtitle}</Text>
+        <Text style={[styles.cardSubtitle, { color: card.accent }]}>
+          {card.subtitle}
+        </Text>
 
         {/* Description */}
         <Text style={styles.cardDesc}>{card.desc}</Text>
 
         {/* Separator */}
-        <View style={[styles.sep, {backgroundColor: card.border}]} />
+        <View style={[styles.sep, { backgroundColor: card.border }]} />
 
         {/* Bullet features */}
         <View style={styles.bulletList}>
           {card.bullets.map((b, i) => (
             <View key={i} style={styles.bulletRow}>
-              <View style={[styles.bulletDot, {backgroundColor: card.accent}]} />
+              <View
+                style={[styles.bulletDot, { backgroundColor: card.accent }]}
+              />
               <Text style={styles.bulletIcon}>{b.icon}</Text>
               <Text style={styles.bulletLabel}>{b.label}</Text>
             </View>
@@ -190,20 +216,30 @@ function FeatureCard({card, index}: {card: (typeof CARDS)[0]; index: number}) {
         {/* Pills */}
         <View style={styles.pillRow}>
           {card.pills.map(p => (
-            <View key={p} style={[styles.pill, {backgroundColor: card.bg, borderColor: card.border}]}>
-              <Text style={[styles.pillTxt, {color: card.accent}]}>{p}</Text>
+            <View
+              key={p}
+              style={[
+                styles.pill,
+                { backgroundColor: card.bg, borderColor: card.border },
+              ]}
+            >
+              <Text style={[styles.pillTxt, { color: card.accent }]}>{p}</Text>
             </View>
           ))}
         </View>
 
         {/* CTA */}
-        <View style={[styles.cta, {backgroundColor: card.bg, borderColor: card.border}]}>
-          <Text style={[styles.ctaTxt, {color: card.accent}]}>
+        <View
+          style={[
+            styles.cta,
+            { backgroundColor: card.bg, borderColor: card.border },
+          ]}
+        >
+          <Text style={[styles.ctaTxt, { color: card.accent }]}>
             Open {card.title}
           </Text>
-          <Text style={[styles.ctaArrow, {color: card.accent}]}>→</Text>
+          <Text style={[styles.ctaArrow, { color: card.accent }]}>→</Text>
         </View>
-
       </TouchableOpacity>
     </Animated.View>
   );
@@ -212,33 +248,41 @@ function FeatureCard({card, index}: {card: (typeof CARDS)[0]; index: number}) {
 // ─────────────────────────────────────────────
 // Main Dashboard
 // ─────────────────────────────────────────────
-export default function Convert() {
-  const headerFade  = useRef(new Animated.Value(0)).current;
+export default function Convert({ navigation }: any) {
+  const headerFade = useRef(new Animated.Value(0)).current;
   const headerSlide = useRef(new Animated.Value(-24)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(headerFade,  {toValue: 1, duration: 550, useNativeDriver: true}),
-      Animated.timing(headerSlide, {toValue: 0, duration: 550, useNativeDriver: true}),
+      Animated.timing(headerFade, {
+        toValue: 1,
+        duration: 550,
+        useNativeDriver: true,
+      }),
+      Animated.timing(headerSlide, {
+        toValue: 0,
+        duration: 550,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
-
+      <Header navigation={navigation} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* ── Header ─────────────────────────────────────── */}
         <Animated.View
           style={[
             styles.header,
-            {opacity: headerFade, transform: [{translateY: headerSlide}]},
-          ]}>
-
+            { opacity: headerFade, transform: [{ translateY: headerSlide }] },
+          ]}
+        >
           {/* Brand row */}
           <View style={styles.brandRow}>
             <View style={styles.brandPulse} />
@@ -246,9 +290,7 @@ export default function Convert() {
           </View>
 
           {/* Hero text */}
-          <Text style={styles.heroTitle}>
-            Your Complete{'\n'}Image Toolkit
-          </Text>
+          <Text style={styles.heroTitle}>Your Complete{'\n'}Image Toolkit</Text>
           <Text style={styles.heroSub}>
             Convert · Compress · Resize — 100% on-device
           </Text>
@@ -256,10 +298,10 @@ export default function Convert() {
           {/* Stat chips */}
           <View style={styles.chipRow}>
             {[
-              {icon: '🔄', txt: '4 Formats'},
-              {icon: '📄', txt: 'PDF Build'},
-              {icon: '🗜️', txt: '95% Compress'},
-              {icon: '🔒', txt: 'Private'},
+              { icon: '🔄', txt: '4 Formats' },
+              { icon: '📄', txt: 'PDF Build' },
+              { icon: '🗜️', txt: '95% Compress' },
+              { icon: '🔒', txt: 'Private' },
             ].map(c => (
               <View key={c.txt} style={styles.statChip}>
                 <Text style={styles.statChipIcon}>{c.icon}</Text>
@@ -287,7 +329,6 @@ export default function Convert() {
             Everything runs locally. No data is sent to any server.
           </Text>
         </View>
-
       </ScrollView>
     </View>
   );
@@ -295,9 +336,9 @@ export default function Convert() {
 
 // ─────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root:          {flex: 1, backgroundColor: COLORS.bg},
-  scroll:        {flex: 1},
-  scrollContent: {paddingBottom: 90},
+  root: { flex: 1, backgroundColor: COLORS.bg },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: 90 },
 
   // Header
   header: {
@@ -355,7 +396,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 6,
   },
-  statChipIcon: {fontSize: 13},
+  statChipIcon: { fontSize: 13 },
   statChipTxt: {
     fontSize: 11,
     fontWeight: '600',
@@ -378,7 +419,7 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
     letterSpacing: 3,
   },
-  sectionLine: {flex: 1, height: 1, backgroundColor: COLORS.border},
+  sectionLine: { flex: 1, height: 1, backgroundColor: COLORS.border },
 
   // Card
   glowLayer: {
@@ -396,7 +437,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 6,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
   },
@@ -423,7 +464,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardEmoji: {fontSize: 30},
+  cardEmoji: { fontSize: 30 },
   headerRight: {
     alignItems: 'flex-end',
     gap: 8,
@@ -449,7 +490,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  arrowTxt: {fontSize: 22, fontWeight: '700', lineHeight: 28},
+  arrowTxt: { fontSize: 22, fontWeight: '700', lineHeight: 28 },
 
   // Text
   cardTitle: {
@@ -499,7 +540,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     opacity: 0.8,
   },
-  bulletIcon: {fontSize: 14, width: 20},
+  bulletIcon: { fontSize: 14, width: 20 },
   bulletLabel: {
     fontSize: 13,
     color: COLORS.text,
@@ -561,7 +602,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  footerIcon: {fontSize: 16},
+  footerIcon: { fontSize: 16 },
   footerTxt: {
     flex: 1,
     fontSize: 12,
