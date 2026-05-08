@@ -30,6 +30,8 @@ import {
   SectionLabel,
 } from '../../components/UIComponents';
 import Header from '../../components/Header';
+import { useIsFocused } from '@react-navigation/native';
+import { interstitial } from '../../components/Ads/adMethods';
 
 // ─────────────────────────────────────────────
 // Preset sizes
@@ -192,6 +194,23 @@ export default function PdfResizeScreen({ navigation }: any) {
     } catch {}
   };
 
+  // ads
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
+
+  useEffect(() => {
+    try {
+      setTimeout(() => {
+        if (isFocused == true) {
+          (async () => {
+            await interstitial.show();
+          })();
+        }
+      }, 5000);
+    } catch (error) {}
+  }, [isFocused]);
   // ─────────────────────────────────────────────────────────────
   return (
     <>

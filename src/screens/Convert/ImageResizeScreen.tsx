@@ -34,6 +34,8 @@ import {
   StatusBadge,
 } from '../../components/UIComponents';
 import Header from '../../components/Header';
+import { useIsFocused } from '@react-navigation/native';
+import { interstitial } from '../../components/Ads/adMethods';
 
 // ─────────────────────────────────────────────
 // Preset target sizes
@@ -229,6 +231,23 @@ export default function ImageResizeScreen({ navigation }: any) {
     Alert.alert('✅ Done', `${saved}/${results.length} files saved`);
   };
 
+  // ads
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
+
+  useEffect(() => {
+    try {
+      setTimeout(() => {
+        if (isFocused == true) {
+          (async () => {
+            await interstitial.show();
+          })();
+        }
+      }, 5000);
+    } catch (error) {}
+  }, [isFocused]);
   // ─────────────────────────────────────────────────────────────
   return (
     <>

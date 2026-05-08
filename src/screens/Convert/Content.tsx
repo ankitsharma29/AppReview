@@ -31,6 +31,8 @@ import {
 import ImageCard from '../../ProgressBar/ImageCard';
 import ResultItem from '../../ProgressBar/ResultItem';
 import Header from '../../components/Header';
+import { useIsFocused } from '@react-navigation/native';
+import { interstitial } from '../../components/Ads/adMethods';
 
 type Tab = 'convert' | 'pdf';
 
@@ -272,6 +274,23 @@ export default function Content({ navigation }: any) {
     })`;
   };
 
+  // ads
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    interstitial.load();
+  }, [isFocused]);
+
+  useEffect(() => {
+    try {
+      setTimeout(() => {
+        if (isFocused == true) {
+          (async () => {
+            await interstitial.show();
+          })();
+        }
+      }, 5000);
+    } catch (error) {}
+  }, [isFocused]);
   return (
     <>
       <Header navigation={navigation} />
