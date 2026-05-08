@@ -388,7 +388,7 @@ export default function Content({ navigation }: any) {
         )}
         <BannerAds
           BaneerSize="390x170"
-          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+          adUnitId={'ca-app-pub-4293747280421578/6692366625'}
         />
         <View style={styles.panel}>
           <SectionLabel text="Options" />

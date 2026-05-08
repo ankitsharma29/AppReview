@@ -313,7 +313,7 @@ export default function Convert({ navigation }: any) {
         </Animated.View>
         <BannerAds
           BaneerSize="390x170"
-          adUnitId={'ca-app-pub-4293747280421578/5005960189'}
+          adUnitId={'ca-app-pub-4293747280421578/6692366625'}
         />
         {/* ── Section heading ─────────────────────────────── */}
         <View style={styles.sectionHeading}>
