@@ -106,7 +106,11 @@ const BottomTab = (_props: BottomTabProps) => {
                 routeName !== 'Home' &&
                 routeName !== 'Shorts' && 
                 routeName !== 'HistoryScreen' && 
-                routeName !== 'GameList'  
+                routeName !== 'GameList' &&
+                routeName !== 'Convert' &&
+                routeName !== 'Content' &&
+                routeName !== 'PdfResizeScreen' &&
+                routeName !== 'ImageResizeScreen' 
               ) {
                 return { display: 'none' };
               }
