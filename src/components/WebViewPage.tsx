@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray3(),
     margin: scaleSize(10),
     flexDirection: 'row',
-    width: '45%',
+    width: '90%',
     height: 200,
   },
 });
