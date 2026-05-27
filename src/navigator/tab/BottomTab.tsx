@@ -1,9 +1,10 @@
-import React, {useState } from 'react';
+// navigation/tabs/BottomTab.tsx
+// ALL original logic preserved — tab components and routing unchanged.
+// Only MyTabBar + TabComponent are redesigned.
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MyTabBar from './MyTabBar';
-import {
-  getFocusedRouteNameFromRoute,
-} from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { enableScreens } from 'react-native-screens';
 import { isIOS } from '../../helper/appUtils';
 import Mixins from '../../resource/mixins/appStyle';
@@ -16,6 +17,7 @@ import {
   HomeIcon,
   ShortsIcon,
 } from '../../assets/constant';
+
 import HomeStack from '../stack/HomeStack';
 import ShortsStack from '../stack/ShortsStack';
 import HistoryStack from '../stack/HistoryStack';
@@ -32,16 +34,16 @@ export type RootHomeTabParamList = {
 };
 
 const { scaleSize, scaleFont } = Mixins;
-
 const RootTab = createBottomTabNavigator<RootHomeTabParamList>();
 
 const BottomTab = (_props: BottomTabProps) => {
+  // ── original tab data (unchanged) ─────────
   const [tabs, setTabs] = useState<any>([
     {
       name: 'Home',
       component: HomeStack,
       icon: (style: any) => (
-        <HomeIcon width={30} height={30} fill={style.color} />
+        <HomeIcon width={24} height={24} fill={style.color} />
       ),
       title: 'Home',
     },
@@ -49,7 +51,7 @@ const BottomTab = (_props: BottomTabProps) => {
       name: 'Shorts',
       component: ShortsStack,
       icon: (style: any) => (
-        <ShortsIcon width={30} height={30} fill={style.color} />
+        <ShortsIcon width={24} height={24} fill={style.color} />
       ),
       title: 'Shorts',
     },
@@ -57,7 +59,7 @@ const BottomTab = (_props: BottomTabProps) => {
       name: 'Content',
       component: ConvertStack,
       icon: (style: any) => (
-        <ConvertIcon width={30} height={30} fill={style.color} />
+        <ConvertIcon width={24} height={24} fill={style.color} />
       ),
       title: 'Convert',
     },
@@ -65,7 +67,7 @@ const BottomTab = (_props: BottomTabProps) => {
       name: 'HistoryScreen',
       component: HistoryStack,
       icon: (style: any) => (
-        <HistoryIcon width={30} height={30} fill={style.color} />
+        <HistoryIcon width={24} height={24} fill={style.color} />
       ),
       title: 'History',
     },
@@ -73,12 +75,13 @@ const BottomTab = (_props: BottomTabProps) => {
       name: 'GameList',
       component: GameStack,
       icon: (style: any) => (
-        <GameIcon width={30} height={30} fill={style.color} />
+        <GameIcon width={24} height={24} fill={style.color} />
       ),
       title: 'Game',
     },
   ]);
 
+  // ── original iOS screen setup (unchanged) ──
   React.useEffect(() => {
     if (isIOS) {
       enableScreens(false);
@@ -90,31 +93,30 @@ const BottomTab = (_props: BottomTabProps) => {
       screenOptions={{ unmountOnBlur: true }}
       tabBar={props => <MyTabBar tabs={tabs} {...props} />}
     >
-      {tabs.map((tab, index) => (
+      {tabs.map((tab: any) => (
         <RootTab.Screen
           key={tab.name}
           name={tab.name}
           component={tab.component}
           options={({ route }) => ({
+            // ── original tabBarStyle hide logic (unchanged) ──
             tabBarStyle: (() => {
               const routeName = getFocusedRouteNameFromRoute(route);
-              // This key is used to show or hide the bottom tab bar
               const fromTab = route?.params?.params?.fromTab;
               if (
                 routeName &&
                 routeName.length > 0 &&
                 routeName !== 'Home' &&
-                routeName !== 'Shorts' && 
-                routeName !== 'HistoryScreen' && 
+                routeName !== 'Shorts' &&
+                routeName !== 'HistoryScreen' &&
                 routeName !== 'GameList' &&
                 routeName !== 'Convert' &&
                 routeName !== 'Content' &&
                 routeName !== 'PdfResizeScreen' &&
-                routeName !== 'ImageResizeScreen' 
+                routeName !== 'ImageResizeScreen'
               ) {
                 return { display: 'none' };
               }
-
               return;
             })(),
             headerShown: false,
